@@ -6,7 +6,8 @@ from automaton import *
 
 testFile = input("Enter the number of the file you want to test:\n")
 
-fa = read_automaton_from_file(testFile+".txt")
-display_automaton(fa)
+fa = Automaton(testFile+".txt")
+print(fa.transitions)
+fa.display_automaton()
 
 
