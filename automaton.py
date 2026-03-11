@@ -1,6 +1,3 @@
-from encodings.punycode import *
-
-
 class Automaton:
     def __init__(self,filename):
         self.filename = filename
@@ -75,16 +72,47 @@ class Automaton:
                 print(f"{value:^{6}}", end="")
             print()
 
+    def is_deterministic(self):
+
+        if (len(self.initialStates)) > 1:
+            print("\nAutomaton non deterministic:")
+            print("Reason: More than one entry\n")
 
 
+        for transition in self.transitions.items():
+            for items in transition[1].items():
+                if len(items[1]) > 1:
+                    print("The letter '" + items[0] + "' points to " + items[1][0] + " and " + items[1][1])
 
+    def is_complete(self):
+        i = 0
+        for transitions in self.transitions.items():
+            if len(transitions[1]) != len(self.alphabet):
+                print("There is " + str(len(self.alphabet)-len(transitions[1])) + " transition(s) missing on the state line " + str(int(transitions[0])+1))
+                i +=1
+        return i==0
 
+    def completion(self):
+        if self.is_complete():
+            print("The automaton is already complete")
+            return
 
+        trash_state = "P"
 
+        if trash_state not in self.states:
+            self.states.append(trash_state)
+            self.transitions[trash_state] = {}
 
+        for letters in self.alphabet:
+            self.transitions[trash_state][letters] = [trash_state]
 
+        for state in self.states:
+            if state == trash_state:
+                continue
 
-
+            for symbol in self.alphabet:
+                if symbol not in self.transitions[state] or not self.transitions[state][symbol]:
+                    self.transitions[state][symbol] = [trash_state]
 
 
 
