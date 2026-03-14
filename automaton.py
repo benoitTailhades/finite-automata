@@ -46,8 +46,7 @@ class Automaton:
                 self.transitions[str(state)] = {}
 
     def display_automaton(self):
-        transitionTable = []
-        transitionTable.append([' ', ' '] + self.alphabet)
+        transition_table = [[' ', ' '] + self.alphabet]
 
         for state in self.states:
             if state in self.initialStates and state in self.finalStates:
@@ -65,12 +64,26 @@ class Automaton:
                 else:
                     table.append('---')
 
-            transitionTable.append(table)
+            transition_table.append(table)
 
-        for line in transitionTable:
+        for line in transition_table:
             for value in line:
                 print(f"{value:^{6}}", end="")
             print()
+
+    def  is_deterministic2(self):
+        if len(self.initialStates) > 1:
+            print('This automata is not deterministic because it has more than one initial state.\n')
+            return False
+        for state in self.states:
+            for alphabet in self.alphabet:
+                if alphabet in self.transitions[state]:
+                    nb_transitions = len(self.transitions[state][alphabet])
+                    if nb_transitions > 1:
+                        print(f'This automata is not deterministic because the state {state} has {nb_transitions} transitions on the same letter {alphabet}:{self.transitions[state][alphabet]} \n')
+                        return False
+        print('This automata is deterministic.\n')
+        return True
 
     def is_deterministic(self):
 
@@ -113,6 +126,93 @@ class Automaton:
             for symbol in self.alphabet:
                 if symbol not in self.transitions[state] or not self.transitions[state][symbol]:
                     self.transitions[state][symbol] = [trash_state]
+
+    def minimisation(self):
+
+        previous_partitions = []
+        current_partitions = [sorted(self.finalStates)]+[sorted(state for state in self.states
+                                                          if state not in self.finalStates)]
+        while current_partitions != previous_partitions:
+            print(current_partitions,'\n')
+            previous_partitions = current_partitions
+            current_partitions = []
+            for group in previous_partitions:
+                dico = {}
+                for state in group:
+                    dico[state] = ''
+                    for alphabet in self.alphabet:
+                        if alphabet in self.transitions[state]:
+                            if self.transitions[state][alphabet][0] in self.finalStates:
+                                dico[state]+='1' # 1 if the transit state is terminal
+                            else:
+                                dico[state]+='0' # 0 if the transit state is non terminal
+                        else:
+                            dico[state]+='-' # - if the there is no transit state
+                new_groups = {}
+                for state, transitions in dico.items():
+                    if transitions not in new_groups:
+                        new_groups[transitions] = []
+                    new_groups[transitions].append(state)
+                for grp in new_groups:
+                    current_partitions.append(sorted(new_groups[grp]))
+
+        transitions_table = {}
+        initial_states = []
+        final_states = []
+
+        for group in current_partitions:
+            is_final = False
+            is_initial = False
+            transitions_table["".join(group)] = {}
+            for alphabet in self.alphabet:
+                target_state = ''
+                for state in group:
+                    if state in self.finalStates:
+                        is_final = True
+                    if state in self.initialStates:
+                        is_initial = True
+                    target_state += self.transitions[state][alphabet][0]
+                transitions_table["".join(group)][alphabet] =["".join(sorted(target_state))]
+            if is_final:
+                final_states.append("".join(group))
+            if is_initial:
+                initial_states.append("".join(group))
+
+        print(f'The transitions table is: {transitions_table}\n'
+              f'The initial states is: {initial_states}\n'
+              f'The final states is: {final_states}\n')
+        self.transitions = transitions_table
+        self.initialStates = initial_states
+        self.finalStates = final_states
+        self.states = self.transitions.keys()
+
+    def create_mermaid_graph_from_automaton(self, filename=None):
+        if filename is None:
+            filename = self.filename.split('.')[0]
+        with open(filename+".mmd",'w') as f:
+            f.write('---\n'
+                    'config:\n'
+                    '   theme: neo\n'
+                    '   look: neo\n'
+                    '   layout: elk\n'
+                    '---\n'
+                    '\n'
+                    'flowchart LR\n')
+            for state in self.states:
+                if state in self.finalStates:
+                    string =f'{state}((({state})))\n'
+                else:
+                    string =f'{state}(({state}))\n'
+                f.write(string)
+
+            for source_state in self.transitions:
+                for alphabet in self.transitions[source_state]:
+                    for target_state in self.transitions[source_state][alphabet]:
+                        f.write(f'{source_state} -->|{alphabet}|{target_state}\n')
+
+            for i,state in enumerate(self.initialStates):
+                f.write(f'start{i}(( ))--> {state}\n')
+
 
 
 
