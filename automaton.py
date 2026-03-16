@@ -71,7 +71,7 @@ class Automaton:
                 print(f"{value:^{6}}", end="")
             print()
 
-    def  is_deterministic2(self):
+    def  is_deterministic(self):
         if len(self.initialStates) > 1:
             print('This automata is not deterministic because it has more than one initial state.\n')
             return False
@@ -85,17 +85,7 @@ class Automaton:
         print('This automata is deterministic.\n')
         return True
 
-    def is_deterministic(self):
 
-        if (len(self.initialStates)) > 1:
-            print("\nAutomaton non deterministic:")
-            print("Reason: More than one entry\n")
-
-
-        for transition in self.transitions.items():
-            for items in transition[1].items():
-                if len(items[1]) > 1:
-                    print("The letter '" + items[0] + "' points to " + items[1][0] + " and " + items[1][1])
 
     def is_complete(self):
         i = 0
@@ -116,16 +106,19 @@ class Automaton:
             self.states.append(trash_state)
             self.transitions[trash_state] = {}
 
-        for letters in self.alphabet:
-            self.transitions[trash_state][letters] = [trash_state]
+        for transitions in self.transitions.items():
 
-        for state in self.states:
-            if state == trash_state:
-                continue
+            liste = list(self.alphabet)
 
-            for symbol in self.alphabet:
-                if symbol not in self.transitions[state] or not self.transitions[state][symbol]:
-                    self.transitions[state][symbol] = [trash_state]
+            for letters in transitions[1]:
+                if letters in liste:
+                    liste.remove(letters)
+
+            for letter in liste:
+                transitions[1][letter] = [trash_state]
+
+
+
 
     def minimisation(self):
 
@@ -212,6 +205,10 @@ class Automaton:
 
             for i,state in enumerate(self.initialStates):
                 f.write(f'start{i}(( ))--> {state}\n')
+
+
+
+
 
 
 
