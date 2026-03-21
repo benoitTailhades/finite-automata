@@ -71,6 +71,46 @@ class Automaton:
                 print(f"{value:^{6}}", end="")
             print()
 
+
+    def is_standard(self):
+        if len(self.initialStates) > 1 or len(self.initialStates) == 0:
+            print('This automaton is not standard because there is not only one initial state.\n')
+            return False
+
+        for source in self.transitions:
+            for symbol in self.transitions[source]:
+                if self.initialStates[0] in self.transitions[source][symbol]:
+                    print('This automaton is not standard because there are transitions arriving at the initial state.\n')
+                    return False
+
+        print('This automaton is standard.\n')
+        return True
+
+    def standardization(self):
+        newInitialState = str(len(self.states))
+
+        for initialState in self.initialStates:
+            if initialState in self.finalStates and newInitialState not in self.finalStates:
+                self.finalStates.append(newInitialState)
+
+        self.transitions[newInitialState] = {}
+
+        for initialState in self.initialStates:
+            if initialState in self.transitions:
+                for symbol in self.transitions[initialState]:
+                    if symbol not in self.transitions[newInitialState]:
+                        self.transitions[newInitialState][symbol] = self.transitions[initialState][symbol].copy()
+                    else:
+                        for target in self.transitions[initialState][symbol]:
+                            if target not in self.transitions[newInitialState][symbol]:
+                                self.transitions[newInitialState][symbol].append(target)
+
+        self.states.append(newInitialState)
+        self.initialStates = [newInitialState]
+
+
+
+
     def  is_deterministic(self):
         if len(self.initialStates) > 1:
             print('This automata is not deterministic because it has more than one initial state.\n')
