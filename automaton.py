@@ -111,7 +111,7 @@ class Automaton:
 
 
 
-    def  is_deterministic(self):
+    def is_deterministic(self):
         if len(self.initialStates) > 1:
             print('This automata is not deterministic because it has more than one initial state.\n')
             return False
@@ -156,9 +156,6 @@ class Automaton:
 
             for letter in liste:
                 transitions[1][letter] = [trash_state]
-
-
-
 
     def minimisation(self):
 
@@ -245,6 +242,35 @@ class Automaton:
 
             for i,state in enumerate(self.initialStates):
                 f.write(f'start{i}(( ))--> {state}\n')
+
+    def read_word(self):
+        word = str(input(""))
+        return word
+
+    def recognize_word(self, word):
+        current_sates = set(self.initialStates)
+
+        for symbol in word:
+
+            if symbol not in self.alphabet:
+                print(f"Symbol {symbol} is not in alphabet : {self.alphabet}")
+                return False
+
+            next_states = set()
+            for state in current_sates:
+                if symbol in self.transitions[state]:
+                    next_states.update(self.transitions[state][symbol])
+
+            current_sates = next_states
+            if not current_sates:
+                return False
+
+        for state in current_sates:
+            if state in self.finalStates:
+                return True
+
+
+
 
 
 
