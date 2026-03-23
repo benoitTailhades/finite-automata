@@ -71,6 +71,44 @@ class Automaton:
                 print(f"{value:^{6}}", end="")
             print()
 
+
+    def is_standard(self):
+        if len(self.initialStates) > 1 or len(self.initialStates) == 0:
+            print('This automaton is not standard because there is not only one initial state.\n')
+            return False
+
+        for source in self.transitions:
+            for symbol in self.transitions[source]:
+                if self.initialStates[0] in self.transitions[source][symbol]:
+                    print('This automaton is not standard because there are transitions arriving at the initial state.\n')
+                    return False
+
+        print('This automaton is standard.\n')
+        return True
+
+    def standardization(self):
+        newInitialState = str(len(self.states))
+
+        for initialState in self.initialStates:
+            if initialState in self.finalStates and newInitialState not in self.finalStates:
+                self.finalStates.append(newInitialState)
+
+        self.transitions[newInitialState] = {}
+
+        for initialState in self.initialStates:
+            if initialState in self.transitions:
+                for symbol in self.transitions[initialState]:
+                    if symbol not in self.transitions[newInitialState]:
+                        self.transitions[newInitialState][symbol] = self.transitions[initialState][symbol].copy()
+                    else:
+                        for target in self.transitions[initialState][symbol]:
+                            if target not in self.transitions[newInitialState][symbol]:
+                                self.transitions[newInitialState][symbol].append(target)
+
+        self.states.append(newInitialState)
+        self.initialStates = [newInitialState]
+
+
     def  is_deterministic(self):
         if len(self.initialStates) > 1:
             print('This automata is not deterministic because it has more than one initial state.\n')
@@ -116,6 +154,77 @@ class Automaton:
 
             for letter in liste:
                 transitions[1][letter] = [trash_state]
+
+    def get_state_name(self, state_list):
+
+        sorted_states = sorted(list(set(state_list)), key=lambda x: int(x) if x.isdigit() else x)
+        if any(len(s) > 1 for s in sorted_states):
+            return ".".join(sorted_states)
+        return "".join(sorted_states)
+
+    def determinize(self):
+
+        if self.is_deterministic():
+            print("AUtomaton already deterministic.")
+            return
+
+
+        new_transitions = {}
+        new_states = []
+        new_final_states = []
+
+        start_set = tuple(sorted(self.initialStates))
+        start_name = self.get_state_name(start_set)
+
+        states_to_process = [start_set]
+        processed_states = []
+        new_states.append(start_name)
+
+        while states_to_process:
+            current_set = states_to_process.pop(0)
+            current_name = self.get_state_name(current_set)
+
+            if current_set in processed_states:
+                continue
+            processed_states.append(current_set)
+
+            if any(s in self.finalStates for s in current_set):
+                if current_name not in new_final_states:
+                    new_final_states.append(current_name)
+
+            new_transitions[current_name] = {}
+
+            for char in self.alphabet:
+                target_set_list = []
+                for s in current_set:
+                    if s in self.transitions and char in self.transitions[s]:
+                        target_set_list.extend(self.transitions[s][char])
+
+                target_set = tuple(sorted(list(set(target_set_list))))
+
+                if not target_set:
+                    target_name = "P"
+                else:
+                    target_name = self.get_state_name(target_set)
+
+                new_transitions[current_name][char] = [target_name]
+
+                if target_set and target_set not in processed_states and target_set not in states_to_process:
+                    states_to_process.append(target_set)
+                    if target_name not in new_states:
+                        new_states.append(target_name)
+
+        if any(new_transitions[s][c] == ["P"] for s in new_transitions for c in self.alphabet):
+            if "P" not in new_states:
+                new_states.append("P")
+                new_transitions["P"] = {char: ["P"] for char in self.alphabet}
+
+        self.states = new_states
+        self.initialStates = [start_name]
+        self.finalStates = new_final_states
+        self.transitions = new_transitions
+
+        print(f"The determinization is over. New initial state : {self.initialStates} ")
 
 
 
@@ -205,6 +314,36 @@ class Automaton:
 
             for i,state in enumerate(self.initialStates):
                 f.write(f'start{i}(( ))--> {state}\n')
+
+    def read_word(self):
+        word = str(input(""))
+        return word
+
+    def recognize_word(self, word):
+        current_sates = set(self.initialStates)
+
+        for symbol in word:
+
+            if symbol not in self.alphabet:
+                print(f"Symbol '{symbol}' is not in alphabet : {self.alphabet}")
+                return False
+
+            next_states = set()
+            for state in current_sates:
+                if symbol in self.transitions[state]:
+                    next_states.update(self.transitions[state][symbol])
+
+            current_sates = next_states
+            if not current_sates:
+                print(f"Our FA cannot recognize word : '{word}'")
+                return False
+
+        for state in current_sates:
+            if state in self.finalStates:
+                print(f"Word : '{word}' recognized successfully")
+                return True
+        print(f"Our FA cannot recognize word : '{word}'")
+        return False
 
 
 
