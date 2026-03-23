@@ -18,5 +18,6 @@ if fa.is_complete() and fa.is_deterministic():
     fa.minimisation()
     fa.create_mermaid_graph_from_automaton(testFile+"_minimisation")
 
-
+if not fa.is_deterministic():
+    fa.determinize()
 
