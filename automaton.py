@@ -1,7 +1,36 @@
 class Automaton:
+    """
+    Represents a finite automaton (FA), either deterministic (DFA) or non-deterministic (NFA).
+
+    The automaton is loaded from a text file following a specific format:
+        Line 0: size of the alphabet (integer)
+        Line 1: number of states (integer)
+        Line 2: initial states, space-separated, first token is the count
+        Line 3: final states, space-separated, first token is the count
+        Line 4: number of transitions (integer)
+        Lines 5+: transitions in the format "source symbol target"
+
+    Attributes:
+        LOAD_BASE_PATH (str): Base directory path for reading automaton files.
+        SAVE_BASE_PATH (str): Base directory path for writing Mermaid graph files.
+        filename (str): Full path to the loaded automaton file.
+        alphabet (list[str]): List of symbols in the automaton's alphabet (e.g. ['a', 'b']).
+        states (list[str]): List of all state names.
+        initialStates (list[str]): List of initial (start) states.
+        finalStates (list[str]): List of final (accepting) states.
+        transitions (dict): Nested dict mapping source state -> symbol -> list of target states.
+    """
+
     LOAD_BASE_PATH = 'data/'
     SAVE_BASE_PATH = 'mermaid_output/'
-    def __init__(self,filename):
+
+    def __init__(self, filename):
+        """
+        Initializes the Automaton by loading its definition from a file.
+
+        Args:
+            filename (str): Name of the file to load (relative to LOAD_BASE_PATH).
+        """
         self.filename = self.LOAD_BASE_PATH + filename
         self.alphabet = []
         self.states = []
@@ -11,49 +40,80 @@ class Automaton:
         self.read_automaton_from_file()
 
     def read_automaton_from_file(self):
+        """
+        Reads and parses the automaton definition from the file specified in self.filename.
+
+        Populates self.alphabet, self.states, self.initialStates, self.finalStates,
+        and self.transitions based on the file content.
+
+        The alphabet is built as consecutive lowercase letters starting from 'a'
+        (e.g. size 3 -> ['a', 'b', 'c']).
+
+        States are numbered from 0 to nbStates-1 (stored as strings).
+
+        Any state that has no outgoing transitions gets an empty dict entry
+        in self.transitions to avoid KeyErrors later.
+        """
         with open(self.filename) as f:
             lines = f.readlines()
 
+        # Build alphabet: 'a', 'b', ... up to alphabetSize letters
         alphabetSize = int(lines[0])
         for i in range(alphabetSize):
             self.alphabet.append(chr(ord('a') + i))
 
+        # Build state list: states are named "0", "1", ..., "nbStates-1"
         nbStates = int(lines[1])
         for i in range(nbStates):
             self.states.append(str(i))
 
+        # Parse initial and final states (first token is the count, rest are state names)
         self.initialStates = lines[2].split()[1:]
-
         self.finalStates = lines[3].split()[1:]
 
         nbTransitions = int(lines[4])
 
+        # Parse each transition line: "source symbol target"
         for i in range(5, 5 + nbTransitions):
-            line = lines[i]
-            line = line.split(" ")
-
+            line = lines[i].split(" ")
             source = line[0]
             symbol = line[1]
-            target = line[2][:-1]
+            target = line[2].rstrip("\n")  # Strip trailing newline
 
-            if source not in self.transitions.keys():
-                self.transitions[source] = {}
-                self.transitions[source][symbol] = [target]
+            # Build the nested transitions dict
+            if source not in self.transitions:
+                self.transitions[source] = {symbol: [target]}
             else:
-                if symbol not in self.transitions[source].keys():
+                if symbol not in self.transitions[source]:
                     self.transitions[source][symbol] = [target]
                 else:
                     self.transitions[source][symbol].append(target)
 
+        # Ensure every state has an entry in transitions (even if empty)
         for state in self.states:
-            if str(state) not in self.transitions.keys():
+            if str(state) not in self.transitions:
                 self.transitions[str(state)] = {}
 
     def display_automaton(self):
-        print(self.transitions,'\n')
+        """
+        Prints the automaton's transition table to the console.
+
+        The first column indicates the role of each state:
+            '<-->' : both initial and final
+            '-->'  : initial only
+            '<--'  : final only
+            ' '    : regular state
+
+        For each (state, symbol) pair, the target state(s) are shown comma-separated,
+        or '---' if no transition exists.
+        """
+        print(self.transitions, '\n')
+
+        # Build header row
         transition_table = [[' ', ' '] + self.alphabet]
 
         for state in self.states:
+            # Determine state role prefix
             if state in self.initialStates and state in self.finalStates:
                 table = ['<-->', state]
             elif state in self.initialStates:
@@ -63,6 +123,7 @@ class Automaton:
             else:
                 table = [' ', state]
 
+            # Fill in transition targets for each alphabet symbol
             for alphabet in self.alphabet:
                 if alphabet in self.transitions[state]:
                     table.append(",".join(self.transitions[state][alphabet]))
@@ -71,17 +132,30 @@ class Automaton:
 
             transition_table.append(table)
 
+        # Print table with fixed-width columns
         for line in transition_table:
             for value in line:
                 print(f"{value:^{6}}", end="")
             print()
 
-
     def is_standard(self):
-        if len(self.initialStates) > 1 or len(self.initialStates) == 0:
+        """
+        Checks whether the automaton is standard.
+
+        An automaton is standard if:
+            1. It has exactly one initial state.
+            2. No transition leads to that initial state from any other state.
+
+        Prints a message explaining the result in both cases.
+
+        Returns:
+            bool: True if the automaton is standard, False otherwise.
+        """
+        if len(self.initialStates) != 1:
             print('This automaton is not standard because there is not only one initial state.\n')
             return False
 
+        # Check that no transition targets the initial state
         for source in self.transitions:
             for symbol in self.transitions[source]:
                 if self.initialStates[0] in self.transitions[source][symbol]:
@@ -92,14 +166,26 @@ class Automaton:
         return True
 
     def standardization(self):
+        """
+        Transforms the automaton into a standard automaton in-place.
+
+        Creates a new initial state (named by the next available integer index)
+        that merges the transitions of all existing initial states.
+
+        If any of the original initial states was a final state, the new
+        initial state is also marked as final.
+
+        After standardization, self.initialStates contains only the new state.
+        """
         newInitialState = str(len(self.states))
 
+        # The new initial state is final if any original initial state was final
         for initialState in self.initialStates:
             if initialState in self.finalStates and newInitialState not in self.finalStates:
                 self.finalStates.append(newInitialState)
 
+        # Merge all transitions from original initial states into the new one
         self.transitions[newInitialState] = {}
-
         for initialState in self.initialStates:
             if initialState in self.transitions:
                 for symbol in self.transitions[initialState]:
@@ -113,73 +199,138 @@ class Automaton:
         self.states.append(newInitialState)
         self.initialStates = [newInitialState]
 
+    def is_deterministic(self):
+        """
+        Checks whether the automaton is deterministic (DFA).
 
+        An automaton is deterministic if:
+            1. It has exactly one initial state.
+            2. For every (state, symbol) pair, there is at most one transition.
 
+        Prints a message explaining the result.
 
-    def  is_deterministic(self):
+        Returns:
+            bool: True if the automaton is deterministic, False otherwise.
+        """
         if len(self.initialStates) > 1:
             print('This automata is not deterministic because it has more than one initial state.\n')
             return False
+
         for state in self.states:
             for alphabet in self.alphabet:
                 if alphabet in self.transitions[state]:
                     nb_transitions = len(self.transitions[state][alphabet])
                     if nb_transitions > 1:
-                        print(f'This automata is not deterministic because the state {state} has {nb_transitions} transitions on the same letter {alphabet}:{self.transitions[state][alphabet]} \n')
+                        print(
+                            f'This automata is not deterministic because the state {state} '
+                            f'has {nb_transitions} transitions on the same letter '
+                            f'{alphabet}:{self.transitions[state][alphabet]} \n'
+                        )
                         return False
+
         print('This automata is deterministic.\n')
         return True
 
-
-
     def is_complete(self):
+        """
+        Checks whether the automaton is complete.
+
+        An automaton is complete if every state has exactly one outgoing transition
+        for each symbol in the alphabet.
+
+        Prints the number of missing transitions per state if any are found.
+
+        Returns:
+            bool: True if the automaton is complete, False otherwise.
+        """
         i = 0
         for transitions in self.transitions.items():
             if len(transitions[1]) != len(self.alphabet):
-                print("There is " + str(len(self.alphabet)-len(transitions[1])) + " transition(s) missing on the state line " + str(int(transitions[0])+1))
-                i +=1
-        return i==0
+                print(
+                    "There is " + str(len(self.alphabet) - len(transitions[1])) +
+                    " transition(s) missing on the state line " + str(int(transitions[0]) + 1)
+                )
+                i += 1
+        return i == 0
 
     def completion(self):
+        """
+        Completes the automaton in-place by adding a sink (trash) state "P".
+
+        For every (state, symbol) pair that has no transition, a transition to the
+        sink state "P" is added. The sink state itself loops on all symbols.
+
+        If the automaton is already complete, prints a message and returns early.
+        """
         if self.is_complete():
             print("The automaton is already complete")
             return
 
         trash_state = "P"
 
+        # Add the sink state if not already present
         if trash_state not in self.states:
             self.states.append(trash_state)
             self.transitions[trash_state] = {}
 
         for transitions in self.transitions.items():
-
+            # Find which symbols are missing for this state
             liste = list(self.alphabet)
-
             for letters in transitions[1]:
                 if letters in liste:
                     liste.remove(letters)
 
+            # Add missing transitions pointing to the sink state
             for letter in liste:
                 transitions[1][letter] = [trash_state]
 
     def get_state_name(self, state_list):
+        """
+        Generates a canonical name for a composite state from a list of state names.
 
+        States are sorted (numerically if all digits, lexicographically otherwise).
+        If any state name has more than one character, names are joined with '.';
+        otherwise they are concatenated directly.
+
+        Args:
+            state_list (list[str] or tuple[str]): Collection of state names to merge.
+
+        Returns:
+            str: A single string representing the composite state name.
+
+        Examples:
+            ['1', '2', '0'] -> "012"
+            ['10', '2']     -> "10.2"
+        """
         sorted_states = sorted(list(set(state_list)), key=lambda x: int(x) if x.isdigit() else x)
         if any(len(s) > 1 for s in sorted_states):
             return ".".join(sorted_states)
         return "".join(sorted_states)
 
     def determinize(self):
+        """
+        Converts the automaton to an equivalent DFA using the subset construction algorithm.
 
+        The algorithm explores all reachable subsets of NFA states, treating each subset
+        as a single DFA state. A composite state is final if it contains at least one
+        NFA final state.
+
+        If no transition leads to a target, a sink state "P" is added to maintain
+        completeness.
+
+        If the automaton is already deterministic, prints a message and returns early.
+
+        Modifies in-place: self.states, self.initialStates, self.finalStates, self.transitions.
+        """
         if self.is_deterministic():
-            print("AUtomaton already deterministic.")
+            print("Automaton already deterministic.")
             return
-
 
         new_transitions = {}
         new_states = []
         new_final_states = []
 
+        # The initial DFA state corresponds to the set of all NFA initial states
         start_set = tuple(sorted(self.initialStates))
         start_name = self.get_state_name(start_set)
 
@@ -195,6 +346,7 @@ class Automaton:
                 continue
             processed_states.append(current_set)
 
+            # Mark as final if any NFA state in the subset is final
             if any(s in self.finalStates for s in current_set):
                 if current_name not in new_final_states:
                     new_final_states.append(current_name)
@@ -202,6 +354,7 @@ class Automaton:
             new_transitions[current_name] = {}
 
             for char in self.alphabet:
+                # Compute the set of reachable states on this symbol
                 target_set_list = []
                 for s in current_set:
                     if s in self.transitions and char in self.transitions[s]:
@@ -210,17 +363,19 @@ class Automaton:
                 target_set = tuple(sorted(list(set(target_set_list))))
 
                 if not target_set:
-                    target_name = "P"
+                    target_name = "P"  # Sink state for missing transitions
                 else:
                     target_name = self.get_state_name(target_set)
 
                 new_transitions[current_name][char] = [target_name]
 
+                # Schedule unprocessed target subsets for exploration
                 if target_set and target_set not in processed_states and target_set not in states_to_process:
                     states_to_process.append(target_set)
                     if target_name not in new_states:
                         new_states.append(target_name)
 
+        # Add the sink state if it was referenced
         if any(new_transitions[s][c] == ["P"] for s in new_transitions for c in self.alphabet):
             if "P" not in new_states:
                 new_states.append("P")
@@ -233,24 +388,62 @@ class Automaton:
 
         print(f"The determinization is over. New initial state : {self.initialStates} ")
 
-
-
-
     def minimisation(self):
+        """
+        Minimizes the automaton using the Myhill-Nerode partition refinement algorithm.
 
+        Assumes the automaton is already a complete DFA. The algorithm iteratively
+        refines a partition of states until no further splitting is possible:
+            - Initial partition: {final states} and {non-final states}
+            - Each iteration splits groups whose states have transitions leading to
+              different groups for the same symbol.
+
+        After convergence, each equivalence class becomes a single state in the
+        minimal DFA. State names are formed by concatenating the original state names
+        within the class.
+
+        Modifies in-place: self.states, self.initialStates, self.finalStates, self.transitions.
+
+        Prints intermediate partitions at each iteration step.
+        """
+        # Start with the basic partition: final vs non-final states
         previous_partitions = []
-        current_partitions = [sorted(self.finalStates)]+[sorted(state for state in self.states
-                                                          if state not in self.finalStates)]
-        print("Initialisation :")
+        current_partitions = (
+                [sorted(self.finalStates)] +
+                [sorted(state for state in self.states if state not in self.finalStates)]
+        )
+
+        print("=" * 60)
+        print("MINIMISATION - Partition refinement")
+        print("=" * 60)
+        print(f"Alphabet : {self.alphabet}")
+        print(f"States   : {self.states}")
+        print(f"Final    : {self.finalStates}")
+        print(f"Initial  : {self.initialStates}")
+        print()
+        print("--- Initialisation ---")
+        print(f"  P0 (final states)     : {sorted(self.finalStates)}")
+        print(f"  P1 (non-final states) : {sorted(s for s in self.states if s not in self.finalStates)}")
+        print()
+
+        iteration = 0
+
+        # Refine partitions until stable
         while current_partitions != previous_partitions:
-            print(current_partitions,'\n')
+            print(f"--- Iteration {iteration} ---")
+            print(f"  Current partition : {current_partitions}")
             previous_partitions = current_partitions
             nb_group = len(current_partitions)
             current_partitions = []
+
             for group in previous_partitions:
                 if len(group) == 1:
+                    # Singleton groups cannot be split further
+                    print(f"  Group {group} -> singleton, kept as-is")
                     current_partitions.append([group[0]])
                 else:
+                    print(f"  Processing group {group} :")
+                    # Build a signature for each state: which group each symbol leads to
                     dico = {}
                     for state in group:
                         dico[state] = ''
@@ -259,31 +452,64 @@ class Automaton:
                                 for grp_index in range(nb_group):
                                     if self.transitions[state][alphabet][0] in previous_partitions[grp_index]:
                                         dico[state] += str(grp_index)
+                        print(f"    State {state} : signature = '{dico[state]}' ", end="")
+                        for alphabet in self.alphabet:
+                            if alphabet in self.transitions[state]:
+                                target = self.transitions[state][alphabet][0]
+                                grp = next(i for i in range(nb_group) if target in previous_partitions[i])
+                                print(f"[on '{alphabet}' -> {target} (group {grp})]", end=" ")
+                        print()
 
-
-
+                    # Group states with identical signatures together
                     new_groups = {}
-                    for state, transitions in dico.items():
-                        if transitions not in new_groups:
-                            new_groups[transitions] = []
-                        new_groups[transitions].append(state)
+                    for state, sig in dico.items():
+                        if sig not in new_groups:
+                            new_groups[sig] = []
+                        new_groups[sig].append(state)
+
+                    if len(new_groups) == 1:
+                        print(f"    => No split needed, group stays {group}")
+                    else:
+                        print(f"    => Split into {len(new_groups)} sub-groups :")
+                        for sig, members in new_groups.items():
+                            print(f"       signature '{sig}' -> {sorted(members)}")
+
                     for grp in new_groups:
                         current_partitions.append(sorted(new_groups[grp]))
 
+            print(f"  New partition : {current_partitions}")
+            print()
+            iteration += 1
+
+        print(f"--- Stable partition reached after {iteration} iteration(s) ---")
+        print(f"  Final partition : {current_partitions}")
+        print()
+
+        # Build the minimal DFA from the final partition
+        print("--- Building the minimal DFA ---")
         transitions_table = {}
         initial_states = []
         final_states = []
 
+        # Map each original state to its equivalence class (group)
         new_states = {}
         for state in self.states:
             for group in current_partitions:
                 if state in group:
                     new_states[state] = group
 
+        print("  State mapping (original -> minimal state name) :")
+        for state, group in new_states.items():
+            print(f"    {state} -> '{''.join(group)}'")
+        print()
+
         for group in current_partitions:
             is_final = False
             is_initial = False
-            transitions_table["".join(group)] = {}
+            group_name = "".join(group)
+            transitions_table[group_name] = {}
+            print(f"  Building state '{group_name}' (from group {group}) :")
+
             for alphabet in self.alphabet:
                 target_state = ''
                 for state in group:
@@ -291,86 +517,143 @@ class Automaton:
                         is_final = True
                     if state in self.initialStates:
                         is_initial = True
-                    new =  "".join(new_states[self.transitions[state][alphabet][0]])
+                    # All states in the group transition to the same equivalence class
+                    new = "".join(new_states[self.transitions[state][alphabet][0]])
                     if new not in target_state:
-                        target_state += "".join(new_states[self.transitions[state][alphabet][0]])
+                        target_state += new
 
-                transitions_table["".join(group)][alphabet] =["".join(sorted(target_state))]
-            if is_final:
-                final_states.append("".join(group))
+                target_name = "".join(sorted(target_state))
+                transitions_table[group_name][alphabet] = [target_name]
+                print(f"    on '{alphabet}' -> '{target_name}'")
+
+            role = []
             if is_initial:
-                initial_states.append("".join(group))
+                initial_states.append(group_name)
+                role.append("INITIAL")
+            if is_final:
+                final_states.append(group_name)
+                role.append("FINAL")
+            print(f"    Role : {', '.join(role) if role else 'regular'}")
+            print()
 
-        print(f'The transitions table is: {transitions_table}\n'
-              f'The initial state is: {initial_states}\n'
-              f'The final(s) state(s) is/are: {final_states}\n')
+        print("=" * 60)
+        print("MINIMISATION RESULT")
+        print("=" * 60)
+        print(f"  States         : {list(transitions_table.keys())}")
+        print(f"  Initial state  : {initial_states}")
+        print(f"  Final state(s) : {final_states}")
+        print(f"  Transitions    :")
+        for src, trans in transitions_table.items():
+            for sym, targets in trans.items():
+                print(f"    {src} --{sym}--> {targets[0]}")
+        print("=" * 60)
+        print()
+
         self.transitions = transitions_table
         self.initialStates = initial_states
         self.finalStates = final_states
         self.states = self.transitions.keys()
 
     def create_mermaid_graph_from_automaton(self, filename=None):
+        """
+        Exports the automaton as a Mermaid flowchart diagram to a .mmd file.
+
+        Final states are represented with triple parentheses (((state))),
+        regular states with double parentheses ((state)).
+        Initial states have an invisible start node pointing to them.
+
+        Args:
+            filename (str, optional): Output filename (without extension). Defaults to
+                                      the base name of the loaded automaton file.
+
+        Output:
+            Writes a .mmd file to SAVE_BASE_PATH using the Mermaid flowchart LR syntax
+            with the 'neo' theme and 'elk' layout.
+        """
         if filename is None:
             filename = self.filename.split('/')[1].split('.')[0]
 
-        with open(self.SAVE_BASE_PATH + filename+".mmd",'w') as f:
-            f.write('---\n'
-                    'config:\n'
-                    '   theme: neo\n'
-                    '   look: neo\n'
-                    '   layout: elk\n'
-                    '---\n'
-                    '\n'
-                    'flowchart LR\n')
+        with open(self.SAVE_BASE_PATH + filename + ".mmd", 'w') as f:
+            f.write(
+                '---\n'
+                'config:\n'
+                '   theme: neo\n'
+                '   look: neo\n'
+                '   layout: elk\n'
+                '---\n'
+                '\n'
+                'flowchart LR\n'
+            )
+
+            # Declare states: triple parens for final, double parens for regular
             for state in self.states:
                 if state in self.finalStates:
-                    string =f'{state}((({state})))\n'
+                    f.write(f'{state}((({state})))\n')
                 else:
-                    string =f'{state}(({state}))\n'
-                f.write(string)
+                    f.write(f'{state}(({state}))\n')
 
+            # Write all transitions
             for source_state in self.transitions:
                 for alphabet in self.transitions[source_state]:
                     for target_state in self.transitions[source_state][alphabet]:
                         f.write(f'{source_state} -->|{alphabet}|{target_state}\n')
 
-            for i,state in enumerate(self.initialStates):
+            # Add invisible start nodes pointing to each initial state
+            for i, state in enumerate(self.initialStates):
                 f.write(f'start{i}(( ))--> {state}\n')
 
     def read_word(self):
+        """
+        Reads a word from standard input.
+
+        Returns:
+            str: The word entered by the user.
+        """
         word = str(input(""))
         return word
 
     def recognize_word(self, word):
-        current_sates = set(self.initialStates)
+        """
+        Determines whether the automaton accepts a given word.
+
+        Simulates the automaton on the input word, starting from all initial states
+        and following transitions for each symbol. The word is accepted if, after
+        consuming all symbols, at least one current state is a final state.
+
+        Args:
+            word (str): The input word to test.
+
+        Returns:
+            bool: True if the word is recognized (accepted), False otherwise.
+
+        Prints a success or failure message in both cases.
+        """
+        current_states = set(self.initialStates)
 
         for symbol in word:
-
+            # Reject immediately if the symbol is not in the alphabet
             if symbol not in self.alphabet:
                 print(f"Symbol '{symbol}' is not in alphabet : {self.alphabet}")
                 return False
 
+            # Compute the set of reachable states after reading this symbol
             next_states = set()
-            for state in current_sates:
+            for state in current_states:
                 if symbol in self.transitions[state]:
                     next_states.update(self.transitions[state][symbol])
 
-            current_sates = next_states
-            if not current_sates:
+            current_states = next_states
+
+            # If no state is reachable, the word is rejected
+            if not current_states:
                 print(f"Our FA cannot recognize word : '{word}'")
                 return False
 
-        for state in current_sates:
+        # Accept if any current state is a final state
+        for state in current_states:
             if state in self.finalStates:
                 print(f"Word : '{word}' recognized successfully")
                 return True
+
         print(f"Our FA cannot recognize word : '{word}'")
         return False
-
-
-
-
-
-
-
-
