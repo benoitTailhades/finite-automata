@@ -1,6 +1,8 @@
 class Automaton:
+    LOAD_BASE_PATH = 'data/'
+    SAVE_BASE_PATH = 'mermaid_output/'
     def __init__(self,filename):
-        self.filename = filename
+        self.filename = self.LOAD_BASE_PATH + filename
         self.alphabet = []
         self.states = []
         self.initialStates = []
@@ -28,10 +30,12 @@ class Automaton:
 
         for i in range(5, 5 + nbTransitions):
             line = lines[i]
+            line = line.split(" ")
 
             source = line[0]
             symbol = line[1]
-            target = line[2]
+            target = line[2][:-1]
+
             if source not in self.transitions.keys():
                 self.transitions[source] = {}
                 self.transitions[source][symbol] = [target]
@@ -46,6 +50,7 @@ class Automaton:
                 self.transitions[str(state)] = {}
 
     def display_automaton(self):
+        print(self.transitions,'\n')
         transition_table = [[' ', ' '] + self.alphabet]
 
         for state in self.states:
@@ -107,6 +112,8 @@ class Automaton:
 
         self.states.append(newInitialState)
         self.initialStates = [newInitialState]
+
+
 
 
     def  is_deterministic(self):
@@ -234,33 +241,44 @@ class Automaton:
         previous_partitions = []
         current_partitions = [sorted(self.finalStates)]+[sorted(state for state in self.states
                                                           if state not in self.finalStates)]
+        print("Initialisation :")
         while current_partitions != previous_partitions:
             print(current_partitions,'\n')
             previous_partitions = current_partitions
+            nb_group = len(current_partitions)
             current_partitions = []
             for group in previous_partitions:
-                dico = {}
-                for state in group:
-                    dico[state] = ''
-                    for alphabet in self.alphabet:
-                        if alphabet in self.transitions[state]:
-                            if self.transitions[state][alphabet][0] in self.finalStates:
-                                dico[state]+='1' # 1 if the transit state is terminal
-                            else:
-                                dico[state]+='0' # 0 if the transit state is non terminal
-                        else:
-                            dico[state]+='-' # - if the there is no transit state
-                new_groups = {}
-                for state, transitions in dico.items():
-                    if transitions not in new_groups:
-                        new_groups[transitions] = []
-                    new_groups[transitions].append(state)
-                for grp in new_groups:
-                    current_partitions.append(sorted(new_groups[grp]))
+                if len(group) == 1:
+                    current_partitions.append([group[0]])
+                else:
+                    dico = {}
+                    for state in group:
+                        dico[state] = ''
+                        for alphabet in self.alphabet:
+                            if alphabet in self.transitions[state]:
+                                for grp_index in range(nb_group):
+                                    if self.transitions[state][alphabet][0] in previous_partitions[grp_index]:
+                                        dico[state] += str(grp_index)
+
+
+
+                    new_groups = {}
+                    for state, transitions in dico.items():
+                        if transitions not in new_groups:
+                            new_groups[transitions] = []
+                        new_groups[transitions].append(state)
+                    for grp in new_groups:
+                        current_partitions.append(sorted(new_groups[grp]))
 
         transitions_table = {}
         initial_states = []
         final_states = []
+
+        new_states = {}
+        for state in self.states:
+            for group in current_partitions:
+                if state in group:
+                    new_states[state] = group
 
         for group in current_partitions:
             is_final = False
@@ -273,7 +291,10 @@ class Automaton:
                         is_final = True
                     if state in self.initialStates:
                         is_initial = True
-                    target_state += self.transitions[state][alphabet][0]
+                    new =  "".join(new_states[self.transitions[state][alphabet][0]])
+                    if new not in target_state:
+                        target_state += "".join(new_states[self.transitions[state][alphabet][0]])
+
                 transitions_table["".join(group)][alphabet] =["".join(sorted(target_state))]
             if is_final:
                 final_states.append("".join(group))
@@ -281,8 +302,8 @@ class Automaton:
                 initial_states.append("".join(group))
 
         print(f'The transitions table is: {transitions_table}\n'
-              f'The initial states is: {initial_states}\n'
-              f'The final states is: {final_states}\n')
+              f'The initial state is: {initial_states}\n'
+              f'The final(s) state(s) is/are: {final_states}\n')
         self.transitions = transitions_table
         self.initialStates = initial_states
         self.finalStates = final_states
@@ -290,8 +311,9 @@ class Automaton:
 
     def create_mermaid_graph_from_automaton(self, filename=None):
         if filename is None:
-            filename = self.filename.split('.')[0]
-        with open(filename+".mmd",'w') as f:
+            filename = self.filename.split('/')[1].split('.')[0]
+
+        with open(self.SAVE_BASE_PATH + filename+".mmd",'w') as f:
             f.write('---\n'
                     'config:\n'
                     '   theme: neo\n'

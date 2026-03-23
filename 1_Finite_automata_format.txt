@@ -1,0 +1,7 @@
+Line 1: number of symbols in the automaton’s alphabet.
+Line 2: number of states.
+Line 3: number of initial states, followed by their numeric labels.
+Line 4: number of final states, followed by their numeric labels.
+Line 5: number of transitions.
+Lines 6 and the following lines: transitions in the form
+<source state> <symbol> <target state >
