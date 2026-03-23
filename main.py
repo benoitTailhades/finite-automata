@@ -13,6 +13,17 @@ print(fa.transitions)
 
 fa.create_mermaid_graph_from_automaton()
 
+## standardization:
+
+if fa.is_standard() == False:
+    standardizationOrNot = input("Do you want to standardize the automaton? (yes or no):\n")
+
+    if standardizationOrNot == "yes":
+        fa.standardization()
+        print("Here is the standardized automaton:")
+        fa.display_automaton()
+
+## minimisation:
 
 if fa.is_complete() and fa.is_deterministic():
     fa.minimisation()
