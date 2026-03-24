@@ -107,7 +107,6 @@ class Automaton:
         For each (state, symbol) pair, the target state(s) are shown comma-separated,
         or '---' if no transition exists.
         """
-        print(self.transitions, '\n')
 
         # Build header row
         transition_table = [[' ', ' '] + self.alphabet]
@@ -138,7 +137,7 @@ class Automaton:
                 print(f"{value:^{6}}", end="")
             print()
 
-    def is_standard(self):
+    def is_standard(self)-> tuple[bool,str]:
         """
         Checks whether the automaton is standard.
 
@@ -152,18 +151,18 @@ class Automaton:
             bool: True if the automaton is standard, False otherwise.
         """
         if len(self.initialStates) != 1:
-            print('This automaton is not standard because there is not only one initial state.\n')
-            return False
+            msg = 'This automaton is not standard because there is not only one initial state.\n'
+            return False,msg
 
         # Check that no transition targets the initial state
         for source in self.transitions:
             for symbol in self.transitions[source]:
                 if self.initialStates[0] in self.transitions[source][symbol]:
-                    print('This automaton is not standard because there are transitions arriving at the initial state.\n')
-                    return False
+                    msg = 'This automaton is not standard because there are transitions arriving at the initial state.\n'
+                    return False,msg
 
-        print('This automaton is standard.\n')
-        return True
+        msg = 'This automaton is standard.\n'
+        return True,msg
 
     def standardization(self):
         """
@@ -199,7 +198,7 @@ class Automaton:
         self.states.append(newInitialState)
         self.initialStates = [newInitialState]
 
-    def is_deterministic(self):
+    def is_deterministic(self)-> tuple[bool,str]:
         """
         Checks whether the automaton is deterministic (DFA).
 
@@ -211,25 +210,25 @@ class Automaton:
 
         Returns:
             bool: True if the automaton is deterministic, False otherwise.
+            str: The message to display.
         """
         if len(self.initialStates) > 1:
-            print('This automata is not deterministic because it has more than one initial state.\n')
-            return False
+            msg = 'This automata is not deterministic because it has more than one initial state.\n'
+            return False,msg
 
         for state in self.states:
             for alphabet in self.alphabet:
                 if alphabet in self.transitions[state]:
                     nb_transitions = len(self.transitions[state][alphabet])
                     if nb_transitions > 1:
-                        print(
-                            f'This automata is not deterministic because the state {state} '
-                            f'has {nb_transitions} transitions on the same letter '
-                            f'{alphabet}:{self.transitions[state][alphabet]} \n'
-                        )
-                        return False
+                        msg = (f'This automata is not deterministic because the state {state} '
+                              f'has {nb_transitions} transitions on the same letter '
+                              f'{alphabet}:{self.transitions[state][alphabet]} \n')
 
-        print('This automata is deterministic.\n')
-        return True
+                        return False,msg
+
+        msg = 'This automata is deterministic.\n'
+        return True ,msg
 
     def is_complete(self):
         """
@@ -322,7 +321,7 @@ class Automaton:
 
         Modifies in-place: self.states, self.initialStates, self.finalStates, self.transitions.
         """
-        if self.is_deterministic():
+        if self.is_deterministic()[0]:
             print("Automaton already deterministic.")
             return
 
@@ -543,16 +542,13 @@ class Automaton:
         print(f"  Initial state  : {initial_states}")
         print(f"  Final state(s) : {final_states}")
         print(f"  Transitions    :")
-        for src, trans in transitions_table.items():
-            for sym, targets in trans.items():
-                print(f"    {src} --{sym}--> {targets[0]}")
-        print("=" * 60)
-        print()
-
         self.transitions = transitions_table
         self.initialStates = initial_states
         self.finalStates = final_states
         self.states = self.transitions.keys()
+        self.display_automaton()
+        print("=" * 60)
+        print()
 
     def create_mermaid_graph_from_automaton(self, filename=None):
         """
