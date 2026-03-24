@@ -1,34 +1,93 @@
 ## imports
 
-from automaton import *
+from ui_functions import *
 
 ## program
 
-testFile = input("Enter the number of the file you want to test:\n")
+def main():
+    clear()
+    banner()
+    automaton: Automaton | None = None
 
-fa = Automaton("FA"+testFile+".txt")
-fa.display_automaton()
+    # Ask to load an automaton at startup
+    automaton = load_automaton()
 
-print(fa.transitions)
+    while True:
+        clear()
+        banner()
 
-fa.create_mermaid_graph_from_automaton()
+        if automaton:
+            print(f"  {DIM}Loaded:{RESET} {CYAN}{automaton.filename}{RESET}  "
+                  f"{DIM}States:{RESET} {len(list(automaton.states))}  "
+                  f"{DIM}Alphabet:{RESET} {' '.join(automaton.alphabet)}")
+        else:
+            warn("No automaton loaded. Press [l] to load one.")
 
-## standardization:
+        draw_menu(MENU_ITEMS)
+        choice = prompt("Your choice:").strip().lower()
 
-if fa.is_standard() == False:
-    standardizationOrNot = input("Do you want to standardize the automaton? (yes or no):\n")
+        if choice == 'q':
+            clear()
+            print(f"\n  {CYAN}Goodbye!{RESET}\n")
+            sys.exit(0)
 
-    if standardizationOrNot == "yes":
-        fa.standardization()
-        print("Here is the standardized automaton:")
-        fa.display_automaton()
+        elif choice == 'l':
+            clear()
+            banner()
+            automaton = load_automaton()
 
-## minimisation:
+        elif automaton is None:
+            clear()
+            banner()
+            error("No automaton loaded. Use [l] first.")
+            pause()
 
-if fa.is_complete() and fa.is_deterministic():
-    fa.minimisation()
-    fa.create_mermaid_graph_from_automaton(testFile+"_minimisation")
+        elif choice == '1':
+            clear()
+            banner()
+            action_display(automaton)
+        elif choice == '2':
+            clear()
+            banner()
+            action_is_deterministic(automaton)
+        elif choice == '3':
+            clear()
+            banner()
+            action_is_complete(automaton)
+        elif choice == '4':
+            clear()
+            banner()
+            action_is_standard(automaton)
+        elif choice == '5':
+            clear()
+            banner()
+            action_determination(automaton)
+        elif choice == '6':
+            clear()
+            banner()
+            action_completion(automaton)
+        elif choice == '7':
+            clear()
+            banner()
+            action_standardization(automaton)
+        elif choice == '8':
+            clear()
+            banner()
+            action_minimisation(automaton)
+        elif choice == '9':
+            clear()
+            banner()
+            action_mermaid(automaton)
+        elif choice == '10':
+            clear()
+            banner()
+            action_full_pipeline(automaton)
+        else:
+            clear()
+            banner()
+            error(f"Unknown option '{choice}'. Please try again.")
+            pause()
 
-if not fa.is_deterministic():
-    fa.determinize()
 
+if __name__ == "__main__":
+    main()
