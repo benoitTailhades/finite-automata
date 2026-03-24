@@ -1,3 +1,5 @@
+from ui_utils import error
+
 class Automaton:
     """
     Represents a finite automaton (FA), either deterministic (DFA) or non-deterministic (NFA).
@@ -629,7 +631,7 @@ class Automaton:
         for symbol in word:
             # Reject immediately if the symbol is not in the alphabet
             if symbol not in self.alphabet:
-                print(f"Symbol '{symbol}' is not in alphabet : {self.alphabet}")
+                error(f"Symbol '{symbol}' is not in alphabet : {self.alphabet}")
                 return False
 
             # Compute the set of reachable states after reading this symbol
@@ -642,14 +644,11 @@ class Automaton:
 
             # If no state is reachable, the word is rejected
             if not current_states:
-                print(f"Our FA cannot recognize word : '{word}'")
                 return False
 
         # Accept if any current state is a final state
         for state in current_states:
             if state in self.finalStates:
-                print(f"Word : '{word}' recognized successfully")
                 return True
 
-        print(f"Our FA cannot recognize word : '{word}'")
         return False

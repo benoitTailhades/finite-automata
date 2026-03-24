@@ -1,69 +1,5 @@
-import os
-import sys
 from automaton import Automaton
-
-RESET = "\033[0m"
-BOLD = "\033[1m"
-DIM = "\033[2m"
-
-# Colors
-CYAN = "\033[96m"
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-RED = "\033[91m"
-WHITE = "\033[97m"
-GRAY = "\033[37m"
-BLUE = "\033[94m"
-MAGENTA = "\033[95m"
-
-
-def clear():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-
-def banner():
-    print(f"{CYAN}{BOLD}")
-    print("  ╔══════════════════════════════════════════════════════╗")
-    print("  ║          FINITE  AUTOMATON  TOOLKIT  v1.0            ║")
-    print("  ╚══════════════════════════════════════════════════════╝")
-    print(RESET)
-
-
-def section(title: str):
-    width = 56
-    pad = (width - len(title) - 2) // 2
-    print(f"\n{BLUE}{BOLD}  {'─' * pad} {title} {'─' * pad}{RESET}\n")
-
-
-def success(msg: str):
-    print(f"  {GREEN}✔  {msg}{RESET}")
-
-
-def warn(msg: str):
-    print(f"  {YELLOW}⚠  {msg}{RESET}")
-
-
-def error(msg: str):
-    print(f"  {RED}✘  {msg}{RESET}")
-
-
-def info(msg: str):
-    print(f"  {CYAN}ℹ  {msg}{RESET}")
-
-
-def prompt(msg: str) -> str:
-    return input(f"  {MAGENTA}›{RESET} {msg} ")
-
-
-def pause():
-    input(f"\n  {DIM}Press Enter to return to the menu…{RESET}")
-
-
-def draw_menu(items: list[tuple[str, str]], title: str = "MAIN MENU"):
-    section(title)
-    for key, label in items:
-        print(f"  {YELLOW}{BOLD}[{key}]{RESET}  {WHITE}{label}{RESET}")
-    print()
+from ui_utils import *
 
 
 # ─────────────────────────────────────────────
@@ -202,6 +138,21 @@ def action_full_pipeline(automaton: Automaton):
     automaton.display_automaton()
     pause()
 
+def action_check_word(automaton: Automaton):
+    section("WORD RECOGNITION")
+    info(f"Alphabet: {', '.join(automaton.alphabet)}")
+    word = prompt("Enter a word to check (leave empty for epsilon):").strip()
+
+    # recognize_word handles the logic and prints its own success/failure messages
+    result = automaton.recognize_word(word)
+
+    if result:
+        success(f"The word '{word}' is accepted by the automaton.")
+    else:
+        error(f"The word '{word}' is rejected.")
+
+    pause()
+
 
 
 
@@ -215,7 +166,8 @@ MENU_ITEMS = [
     ("7",  "Standardize the automaton"),
     ("8",  "Minimise the automaton"),
     ("9",  "Export Mermaid graph (.mmd)"),
-    ("10", "Run full pipeline  (display → complete → minimise → export)"),
+    ("10", "Check word recognition"),
+    ("11", "Run full pipeline  (display → complete → minimise → export)"),
     ("─",  "─" * 40),
     ("l",  "Load a different automaton"),
     ("q",  "Quit"),

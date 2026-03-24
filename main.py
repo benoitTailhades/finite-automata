@@ -26,67 +26,45 @@ def main():
         draw_menu(MENU_ITEMS)
         choice = prompt("Your choice:").strip().lower()
 
+        clear()
         if choice == 'q':
-            clear()
             print(f"\n  {CYAN}Goodbye!{RESET}\n")
             sys.exit(0)
 
-        elif choice == 'l':
-            clear()
-            banner()
-            automaton = load_automaton()
-
-        elif automaton is None:
-            clear()
-            banner()
-            error("No automaton loaded. Use [l] first.")
-            pause()
-
-        elif choice == '1':
-            clear()
-            banner()
-            action_display(automaton)
-        elif choice == '2':
-            clear()
-            banner()
-            action_is_deterministic(automaton)
-        elif choice == '3':
-            clear()
-            banner()
-            action_is_complete(automaton)
-        elif choice == '4':
-            clear()
-            banner()
-            action_is_standard(automaton)
-        elif choice == '5':
-            clear()
-            banner()
-            action_determination(automaton)
-        elif choice == '6':
-            clear()
-            banner()
-            action_completion(automaton)
-        elif choice == '7':
-            clear()
-            banner()
-            action_standardization(automaton)
-        elif choice == '8':
-            clear()
-            banner()
-            action_minimisation(automaton)
-        elif choice == '9':
-            clear()
-            banner()
-            action_mermaid(automaton)
-        elif choice == '10':
-            clear()
-            banner()
-            action_full_pipeline(automaton)
         else:
-            clear()
             banner()
-            error(f"Unknown option '{choice}'. Please try again.")
-            pause()
+            match choice:
+                case 'l':
+                    automaton = load_automaton()
+                case _ if automaton is None:
+                    error("No automaton loaded. Use [l] first.")
+                    pause()
+                case '1':
+                    action_display(automaton)
+                case '2':
+                    action_is_deterministic(automaton)
+                case '3':
+                    action_is_complete(automaton)
+                case '4':
+                    action_is_standard(automaton)
+                case '5':
+                    action_determination(automaton)
+                case '6':
+                    action_completion(automaton)
+                case '7':
+                    action_standardization(automaton)
+                case '8':
+                    action_minimisation(automaton)
+                case '9':
+                    action_mermaid(automaton)
+                case '10':
+                    action_check_word(automaton)
+                case '11':
+                    action_full_pipeline(automaton)
+                case _:
+                    error(f"Unknown option '{choice}'. Please try again.")
+                    pause()
+
 
 
 if __name__ == "__main__":
