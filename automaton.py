@@ -40,6 +40,7 @@ class Automaton:
         self.finalStates = []
         self.transitions = dict()
         self.read_automaton_from_file()
+        self.synchronize()
 
     def read_automaton_from_file(self):
         """
@@ -638,54 +639,137 @@ class Automaton:
                 f.write(f'start{i}(( ))--> {state}\n')
 
     def read_word(self):
-        """
-        Reads a word from standard input.
-
-        Returns:
-            str: The word entered by the user.
-        """
-        word = str(input(""))
+        word = str(input("Enter a word to recognize: "))
+        print(f"\n[READ] Word entered: '{word}'")
+        print(f"[READ] Alphabet: {self.alphabet}")
+        print(f"[READ] Word length: {len(word)} symbol(s)\n")
         return word
 
     def recognize_word(self, word):
-        """
-        Determines whether the automaton accepts a given word.
+        print(f"[RECOGNIZE] Starting recognition of '{word}'")
+        print(f"[RECOGNIZE] Initial states: {self.initialStates}")
+        print(f"[RECOGNIZE] Final states:   {self.finalStates}\n")
 
-        Simulates the automaton on the input word, starting from all initial states
-        and following transitions for each symbol. The word is accepted if, after
-        consuming all symbols, at least one current state is a final state.
-
-        Args:
-            word (str): The input word to test.
-
-        Returns:
-            bool: True if the word is recognized (accepted), False otherwise.
-
-        Prints a success or failure message in both cases.
-        """
         current_states = set(self.initialStates)
 
-        for symbol in word:
-            # Reject immediately if the symbol is not in the alphabet
+        for i, symbol in enumerate(word):
+            print(f"  Step {i + 1}: reading symbol '{symbol}' from states {current_states}")
+
             if symbol not in self.alphabet:
-                error(f"Symbol '{symbol}' is not in alphabet : {self.alphabet}")
+                print(f"  [ERROR] Symbol '{symbol}' is not in alphabet {self.alphabet}")
+                print(f"[RECOGNIZE] Result: REJECTED (invalid symbol)\n")
                 return False
 
-            # Compute the set of reachable states after reading this symbol
             next_states = set()
             for state in current_states:
                 if symbol in self.transitions[state]:
-                    next_states.update(self.transitions[state][symbol])
+                    targets = self.transitions[state][symbol]
+                    print(f"    {state} --{symbol}--> {targets}")
+                    next_states.update(targets)
+                else:
+                    print(f"    {state} --{symbol}--> (no transition)")
 
             current_states = next_states
+            print(f"  --> Current states after step {i + 1}: {current_states}\n")
 
-            # If no state is reachable, the word is rejected
             if not current_states:
+                print(f"[RECOGNIZE] Result: REJECTED (no active states remaining)\n")
                 return False
 
-        # Accept if any current state is a final state
-        for state in current_states:
-            if state in self.finalStates:
-                return True
+        final_reached = [s for s in current_states if s in self.finalStates]
+        print(f"[RECOGNIZE] End of word. Active states: {current_states}")
+        print(f"[RECOGNIZE] Final states reached: {final_reached if final_reached else 'none'}")
 
-        return False
+        if final_reached:
+            print(f"[RECOGNIZE] Result: ACCEPTED\n")
+            return True
+        else:
+            print(f"[RECOGNIZE] Result: REJECTED (not in a final state)\n")
+            return False
+
+    def synchronize(self):
+        print(f"[SYNC] Starting synchronization (epsilon removal)")
+        print(f"[SYNC] Epsilon symbol: 'E'")
+        print(f"[SYNC] Alphabet: {self.alphabet}")
+        print(f"[SYNC] Initial states: {self.initialStates}")
+        print(f"[SYNC] Final states:   {self.finalStates}\n")
+
+        def epsilon_closure(states, transitions):
+            closure = set(states)
+            stack = list(states)
+            while stack:
+                state = stack.pop()
+                if 'E' in transitions.get(state, {}):
+                    for target in transitions[state]['E']:
+                        if target not in closure:
+                            print(f"    [E-closure] {state} --E--> {target} (added to closure)")
+                            closure.add(target)
+                            stack.append(target)
+            return closure
+
+        print(f"[SYNC] Computing epsilon-closure of initial states {self.initialStates}:")
+        initial_closure = epsilon_closure(self.initialStates, self.transitions)
+        print(f"[SYNC] Initial closure: {initial_closure}\n")
+
+        visited = {}
+        queue = [frozenset(initial_closure)]
+        new_transitions = {}
+        new_final_states = []
+        new_initial_states = []
+
+        counter = 0
+        while queue:
+            current_set = queue.pop(0)
+
+            if current_set in visited:
+                continue
+
+            state_name = str(counter)
+            visited[current_set] = state_name
+            counter += 1
+            new_transitions[state_name] = {}
+
+            print(f"[SYNC] Processing new state '{state_name}' = {set(current_set)}")
+
+            if frozenset(initial_closure) == current_set:
+                new_initial_states.append(state_name)
+                print(f"  --> '{state_name}' is an initial state")
+
+            if any(s in self.finalStates for s in current_set):
+                new_final_states.append(state_name)
+                print(f"  --> '{state_name}' is a final state")
+
+            for symbol in self.alphabet:
+                reachable = set()
+                for state in current_set:
+                    if symbol in self.transitions.get(state, {}):
+                        targets = self.transitions[state][symbol]
+                        print(f"  {state} --{symbol}--> {targets}")
+                        reachable.update(targets)
+
+                if not reachable:
+                    print(f"  --{symbol}--> (no transition)")
+                    continue
+
+                closed = epsilon_closure(reachable, self.transitions)
+                closed_frozen = frozenset(closed)
+
+                target_name = visited[closed_frozen] if closed_frozen in visited else str(counter)
+                new_transitions[state_name][symbol] = [target_name]
+                print(f"  --{symbol}--> e-closure{set(reachable)} = {set(closed)} => new state '{target_name}'")
+
+                if closed_frozen not in visited:
+                    queue.append(closed_frozen)
+
+            print()
+
+        self.states = list(new_transitions.keys())
+        self.initialStates = new_initial_states
+        self.finalStates = new_final_states
+        self.transitions = new_transitions
+
+        print(f"[SYNC] Done.")
+        print(f"[SYNC] New states:        {self.states}")
+        print(f"[SYNC] New initial states:{self.initialStates}")
+        print(f"[SYNC] New final states:  {self.finalStates}")
+        print(f"[SYNC] New transitions:   {self.transitions}\n")
