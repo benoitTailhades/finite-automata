@@ -112,8 +112,11 @@ class Automaton:
 
         # Build header row
         transition_table = [[' ', ' '] + self.alphabet]
-
+        max_len = 0
         for state in self.states:
+            if len(state) > max_len:
+                max_len = len(state)
+
             # Determine state role prefix
             if state in self.initialStates and state in self.finalStates:
                 table = ['<-->', state]
@@ -136,7 +139,7 @@ class Automaton:
         # Print table with fixed-width columns
         for line in transition_table:
             for value in line:
-                print(f"{value:^{6}}", end="")
+                print(f"{value:^{max(6,max_len+2)}}", end="")
             print()
 
     def is_standard(self)-> tuple[bool,str]:
@@ -303,7 +306,7 @@ class Automaton:
             ['1', '2', '0'] -> "012"
             ['10', '2']     -> "10.2"
         """
-        sorted_states = sorted(list(set(state_list)), key=lambda x: int(x) if x.isdigit() else x)
+        sorted_states = sorted(list(set(state_list)), key=lambda x: (not x.isdigit(),int(x) if x.isdigit() else x))
         if any(len(s) > 1 for s in sorted_states):
             return ".".join(sorted_states)
         return "".join(sorted_states)
@@ -535,29 +538,29 @@ class Automaton:
 
         print("  State mapping (original -> minimal state name) :")
         for state, group in new_states.items():
-            print(f"    {state} -> '{''.join(group)}'")
+            print(f"    {state} -> '{self.get_state_name(group)}'")
         print()
 
         for group in current_partitions:
             is_final = False
             is_initial = False
-            group_name = "".join(group)
+            group_name = self.get_state_name(group)
             transitions_table[group_name] = {}
             print(f"  Building state '{group_name}' (from group {group}) :")
 
             for alphabet in self.alphabet:
-                target_state = ''
+                target_state = None
                 for state in group:
                     if state in self.finalStates:
                         is_final = True
                     if state in self.initialStates:
                         is_initial = True
                     # All states in the group transition to the same equivalence class
-                    new = "".join(new_states[self.transitions[state][alphabet][0]])
-                    if new not in target_state:
-                        target_state += new
+                    new = new_states[self.transitions[state][alphabet][0]]
+                    target_state = new
 
-                target_name = "".join(sorted(target_state))
+
+                target_name = self.get_state_name(target_state)
                 transitions_table[group_name][alphabet] = [target_name]
                 print(f"    on '{alphabet}' -> '{target_name}'")
 

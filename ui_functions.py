@@ -75,8 +75,6 @@ def action_determination(automaton: Automaton):
     success("The automaton is now deterministic.")
     pause()
 
-
-
 def action_minimisation(automaton: Automaton):
     section("MINIMISATION")
     warn("Note: the automaton must be deterministic and complete before minimising.")
@@ -94,7 +92,6 @@ def action_standardization(automaton: Automaton):
     success("Standardization complete.")
     pause()
 
-
 def action_mermaid(automaton: Automaton):
     section("EXPORT MERMAID GRAPH")
     custom = prompt("Custom output filename (without extension) or Enter for default:").strip()
@@ -106,7 +103,6 @@ def action_mermaid(automaton: Automaton):
     except Exception as e:
         error(f"Export failed: {e}")
     pause()
-
 
 def action_full_pipeline(automaton: Automaton):
     """Runs: display → determinism check → completion → minimisation → export."""
@@ -141,15 +137,16 @@ def action_full_pipeline(automaton: Automaton):
 def action_check_word(automaton: Automaton):
     section("WORD RECOGNITION")
     info(f"Alphabet: {', '.join(automaton.alphabet)}")
-    word = prompt("Enter a word to check (leave empty for epsilon):").strip()
+    word = prompt("Enter a word to check (leave empty for epsilon) write \'end\' to end the word recognitions:").strip()
+    while word != "end":
+        # recognize_word handles the logic and prints its own success/failure messages
+        result = automaton.recognize_word(word)
 
-    # recognize_word handles the logic and prints its own success/failure messages
-    result = automaton.recognize_word(word)
-
-    if result:
-        success(f"The word '{word}' is accepted by the automaton.")
-    else:
-        error(f"The word '{word}' is rejected.")
+        if result:
+            success(f"The word '{word}' is accepted by the automaton.")
+        else:
+            warn(f"The word '{word}' is rejected.")
+        word = prompt("Enter a word to check (leave empty for epsilon) write \'end\' to end the word recognitions:").strip()
 
     pause()
 
