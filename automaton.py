@@ -311,27 +311,26 @@ class Automaton:
     def determinize(self):
         """
         Converts the automaton to an equivalent DFA using the subset construction algorithm.
-
-        The algorithm explores all reachable subsets of NFA states, treating each subset
-        as a single DFA state. A composite state is final if it contains at least one
-        NFA final state.
-
-        If no transition leads to a target, a sink state "P" is added to maintain
-        completeness.
-
-        If the automaton is already deterministic, prints a message and returns early.
-
-        Modifies in-place: self.states, self.initialStates, self.finalStates, self.transitions.
+        Includes a detailed execution trace.
         """
         if self.is_deterministic()[0]:
             print("Automaton already deterministic.")
             return
 
+        print("=" * 60)
+        print("DETERMINIZATION - Subset Construction")
+        print("=" * 60)
+        print(f"Alphabet    : {self.alphabet}")
+        print(f"NFA States  : {self.states}")
+        print(f"NFA Initial : {self.initialStates}")
+        print(f"NFA Final   : {self.finalStates}")
+        print()
+
         new_transitions = {}
         new_states = []
         new_final_states = []
 
-        # The initial DFA state corresponds to the set of all NFA initial states
+        # Initial DFA state: set of all NFA initial states
         start_set = tuple(sorted(self.initialStates))
         start_name = self.get_state_name(start_set)
 
@@ -339,55 +338,90 @@ class Automaton:
         processed_states = []
         new_states.append(start_name)
 
+        print("--- Initialization ---")
+        print(f"  Starting subset (Initial) : {list(start_set)} -> DFA State '{start_name}'")
+        print()
+
+        step = 0
         while states_to_process:
             current_set = states_to_process.pop(0)
             current_name = self.get_state_name(current_set)
 
             if current_set in processed_states:
                 continue
+
             processed_states.append(current_set)
 
-            # Mark as final if any NFA state in the subset is final
+            print(f"--- Step {step}: Processing DFA state '{current_name}' ---")
+            print(f"  Subset elements : {list(current_set)}")
+
+            # Determine Role
+            roles = []
+            if current_name == start_name:
+                roles.append("INITIAL")
             if any(s in self.finalStates for s in current_set):
+                roles.append("FINAL")
                 if current_name not in new_final_states:
                     new_final_states.append(current_name)
+
+            print(f"  Role            : {', '.join(roles) if roles else 'REGULAR'}")
 
             new_transitions[current_name] = {}
 
             for char in self.alphabet:
-                # Compute the set of reachable states on this symbol
                 target_set_list = []
+                # Find all reachable NFA states for this symbol
                 for s in current_set:
                     if s in self.transitions and char in self.transitions[s]:
                         target_set_list.extend(self.transitions[s][char])
 
+                # Remove duplicates and sort
                 target_set = tuple(sorted(list(set(target_set_list))))
 
                 if not target_set:
-                    target_name = "P"  # Sink state for missing transitions
+                    target_name = "P"
+                    print(f"    on '{char}' -> [] (Empty set) -> leads to Sink state 'P'")
                 else:
                     target_name = self.get_state_name(target_set)
+                    print(f"    on '{char}' -> {list(target_set)} -> leads to DFA state '{target_name}'")
 
                 new_transitions[current_name][char] = [target_name]
 
-                # Schedule unprocessed target subsets for exploration
-                if target_set and target_set not in processed_states and target_set not in states_to_process:
+                # If this target subset is new, add it to the queue
+                if target_set and target_set not in processed_states and target_set not in [s for s in
+                                                                                            states_to_process]:
                     states_to_process.append(target_set)
                     if target_name not in new_states:
                         new_states.append(target_name)
 
-        # Add the sink state if it was referenced
-        if any(new_transitions[s][c] == ["P"] for s in new_transitions for c in self.alphabet):
+            print()
+            step += 1
+
+        # Handling the sink state "P" if it was used
+        if any("P" in new_transitions[s][c] for s in new_transitions for c in self.alphabet):
             if "P" not in new_states:
+                print("--- Adding Sink State 'P' ---")
                 new_states.append("P")
                 new_transitions["P"] = {char: ["P"] for char in self.alphabet}
+                print("  State 'P' added to complete the DFA.")
+                print()
 
+        # Update automaton properties
         self.states = new_states
         self.initialStates = [start_name]
         self.finalStates = new_final_states
         self.transitions = new_transitions
 
-        print(f"The determinization is over. New initial state : {self.initialStates} ")
+        print("=" * 60)
+        print("DETERMINIZATION RESULT")
+        print("=" * 60)
+        print(f"  New States     : {list(self.states)}")
+        print(f"  Initial State  : {self.initialStates}")
+        print(f"  Final State(s) : {self.finalStates}")
+        print(f"  Transitions    :")
+        self.display_automaton()
+        print("=" * 60)
+        print("\n ✔ Determinization complete.\n")
 
     def minimisation(self):
         """
