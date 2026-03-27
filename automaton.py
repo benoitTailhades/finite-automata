@@ -40,8 +40,9 @@ class Automaton:
         self.finalStates = []
         self.transitions = dict()
         self.read_automaton_from_file()
-        self.synchronize()
-
+        raw_alphabet = [list(link.keys()) for link in self.transitions.values()]
+        if ["E"] in raw_alphabet:
+            self.synchronize()
     def read_automaton_from_file(self):
         """
         Reads and parses the automaton definition from the file specified in self.filename.
