@@ -183,27 +183,69 @@ class Automaton:
 
         After standardization, self.initialStates contains only the new state.
         """
+        print("=" * 60)
+        print("STANDARDIZATION - Creating Single Initial State")
+        print("=" * 60)
+
+        print(f"Original States          : {self.states}")
+        print(f"Original Initial States  : {self.initialStates}")
+        print(f"Original Final States    : {self.finalStates}")
+        print(f"Original Transitions     : {self.transitions}")
+        print()
+
+        # Create new initial state
+        print("--- Step 1: Create new initial state ---")
         newInitialState = str(len(self.states))
+        print(f"  New initial state created: '{newInitialState}'")
+        print()
 
         # The new initial state is final if any original initial state was final
+        print("--- Step 2: Check if new state is final ---")
+        isFinal = False
         for initialState in self.initialStates:
             if initialState in self.finalStates and newInitialState not in self.finalStates:
-                self.finalStates.append(newInitialState)
+                isFinal = True
+
+        if isFinal:
+            self.finalStates.append(newInitialState)
+            print(f"  → New state '{newInitialState}' is FINAL")
+        else:
+            print(f"  → New state '{newInitialState}' is NOT final")
+        print()
 
         # Merge all transitions from original initial states into the new one
+        print("--- Step 3: Merge transitions into new initial state ---")
         self.transitions[newInitialState] = {}
         for initialState in self.initialStates:
             if initialState in self.transitions:
                 for symbol in self.transitions[initialState]:
                     if symbol not in self.transitions[newInitialState]:
                         self.transitions[newInitialState][symbol] = self.transitions[initialState][symbol].copy()
+                        print(f"  → We add the transition : {newInitialState} → {symbol} → {", ".join(self.transitions[initialState][symbol])}")
                     else:
                         for target in self.transitions[initialState][symbol]:
                             if target not in self.transitions[newInitialState][symbol]:
                                 self.transitions[newInitialState][symbol].append(target)
+                                print(f"  → We add the transition : {newInitialState} → {symbol} → {target}")
+        print()
 
+        # Update states
         self.states.append(newInitialState)
         self.initialStates = [newInitialState]
+
+        print("=" * 60)
+        print("STANDARDIZATION RESULT")
+        print("=" * 60)
+        print()
+
+        print(f"New States          : {self.states}")
+        print(f"New Initial States  : {self.initialStates}")
+        print(f"New Final States    : {self.finalStates}")
+        print(f"New Transitions     : {self.transitions}")
+        self.display_automaton()
+
+        print("=" * 60)
+        print("\n ✔ Standardization complete.\n")
 
     def is_deterministic(self)-> tuple[bool,str]:
         """
