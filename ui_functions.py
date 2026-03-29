@@ -46,11 +46,12 @@ def action_is_deterministic(automaton: Automaton):
 
 def action_is_complete(automaton: Automaton):
     section("COMPLETENESS CHECK")
-    result = automaton.is_complete()
+    result,msg = automaton.is_complete()
     if result:
         success("The automaton is complete.")
     else:
-        warn("The automaton is NOT complete (see missing transitions above).")
+        warn("The automaton is NOT complete (see missing transitions below).")
+        warn(msg)
     pause()
 
 def action_is_standard(automaton: Automaton):
@@ -149,6 +150,28 @@ def action_check_word(automaton: Automaton):
 
     pause()
 
+def action_check_word_complementary_automaton(automaton: Automaton):
+    section("WORD RECOGNITION FOR COMPLEMENTARY AUTOMATON")
+    info("New Complementary Automaton")
+    new_automaton = automaton.complementary_automaton()
+    success("Complementary Automaton complete.")
+    info("Transition :")
+    new_automaton.display_automaton()
+    info(f"Alphabet: {', '.join(new_automaton.alphabet)}")
+    word = prompt("Enter a word to check (leave empty for epsilon) write \'end\' to end the word recognitions:").strip()
+    while word != "end":
+        # recognize_word handles the logic and prints its own success/failure messages
+        result = new_automaton.recognize_word(word)
+
+        if result:
+            success(f"The word '{word}' is accepted by the automaton.")
+        else:
+            warn(f"The word '{word}' is rejected.")
+        word = prompt(
+            "Enter a word to check (leave empty for epsilon) write \'end\' to end the word recognitions:").strip()
+
+    pause()
+
 
 
 TRACE_DIR = "traces/"
@@ -234,11 +257,12 @@ def _run_pipeline(filename: str, fa_number: int):
 
     # is_complete prints its own per-state messages, so we just capture the bool.
     print("Complete     : ", end="")
-    is_cpl = fa.is_complete()
+    is_cpl,msg = fa.is_complete()
     if is_cpl:
         print("YES")
     else:
-        print("NO (see missing transitions above)")
+        print("NO (see missing transitions below)\n")
+        print(msg)
 
     # ── 3. Standardization ──────────────────────────────────────
     print("\n[3] STANDARDIZATION")
@@ -256,7 +280,7 @@ def _run_pipeline(filename: str, fa_number: int):
 
     # Re-check after potential standardization, since that may have changed the FA.
     is_det2, _ = fa.is_deterministic()
-    is_cpl2 = fa.is_complete()
+    is_cpl2,_ = fa.is_complete()
 
     if is_det2 and is_cpl2:
         print("Already a CDFA — no action taken.")
@@ -295,8 +319,8 @@ def _run_pipeline(filename: str, fa_number: int):
     # Build the complement by swapping final and non-final states.
     # The CDFA is used as the base (it is already complete and deterministic).
     print("Base automaton used: CDFA")
-    comp = copy.deepcopy(cdfa)
-    comp.finalStates = [s for s in comp.states if s not in cdfa.finalStates]
+    comp = cdfa.complementary_automaton()
+
     print("Complementary automaton (final states inverted):")
     comp.display_automaton()
     print("\nWords tested on the complementary automaton:")
@@ -325,10 +349,10 @@ def generate_all_traces(fa_list: list[int]):
 
 
 if __name__ == "__main__":
-    # Lance la génération pour tous les automates disponibles
-    all_numbers = list(range(1, 45)) + [99]
+    # Launch the generation of the execution trace for all the finite automata
+    all_numbers = list(range(1, 45))
     generate_all_traces(all_numbers)
-    generate_trace(4)
+
 
 
 
@@ -344,7 +368,8 @@ MENU_ITEMS = [
     ("8",  "Minimise the automaton"),
     ("9",  "Export Mermaid graph (.mmd)"),
     ("10", "Check word recognition"),
-    ("11", "Run full pipeline  (display → complete → minimise → export)"),
+    ("11", "Check word recognition for complementary automaton"),
+    ("12", "Run full pipeline  (display → complete → minimise → export)"),
     ("─",  "─" * 40),
     ("l",  "Load a different automaton"),
     ("q",  "Quit"),

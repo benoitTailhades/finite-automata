@@ -1,3 +1,6 @@
+import copy
+import os
+
 from ui_utils import error
 
 class Automaton:
@@ -26,7 +29,7 @@ class Automaton:
     LOAD_BASE_PATH = 'data/'
     SAVE_BASE_PATH = 'mermaid_output/'
 
-    def __init__(self, filename):
+    def __init__(self, filename=None):
         """
         Initializes the Automaton by loading its definition from a file.
 
@@ -39,10 +42,11 @@ class Automaton:
         self.initialStates = []
         self.finalStates = []
         self.transitions = dict()
-        self.read_automaton_from_file()
-        raw_alphabet = [list(link.keys()) for link in self.transitions.values()]
-        if ["E"] in raw_alphabet:
-            self.synchronize()
+        if filename:
+            self.read_automaton_from_file()
+            raw_alphabet = [list(link.keys()) for link in self.transitions.values()]
+            if ["E"] in raw_alphabet:
+                self.synchronize()
     def read_automaton_from_file(self):
         """
         Reads and parses the automaton definition from the file specified in self.filename.
@@ -279,7 +283,7 @@ class Automaton:
         msg = 'This automata is deterministic.\n'
         return True ,msg
 
-    def is_complete(self):
+    def is_complete(self)-> tuple[bool,str]:
         """
         Checks whether the automaton is complete.
 
@@ -292,14 +296,13 @@ class Automaton:
             bool: True if the automaton is complete, False otherwise.
         """
         i = 0
+        msg = ""
         for transitions in self.transitions.items():
             if len(transitions[1]) != len(self.alphabet):
-                print(
-                    "There is " + str(len(self.alphabet) - len(transitions[1])) +
-                    " transition(s) missing on the state line " + str(int(transitions[0]) + 1)
-                )
+                msg += (f"There is {str(len(self.alphabet) - len(transitions[1]))} "
+                        f"transition(s) missing on the state {str(int(transitions[0]))}\n")
                 i += 1
-        return i == 0
+        return i == 0,msg
 
     def completion(self):
         """
@@ -310,7 +313,7 @@ class Automaton:
 
         If the automaton is already complete, prints a message and returns early.
         """
-        if self.is_complete():
+        if self.is_complete()[0]:
             print("The automaton is already complete")
             return
 
@@ -652,6 +655,8 @@ class Automaton:
         if filename is None:
             filename = self.filename.split('/')[1].split('.')[0]
 
+        os.makedirs(self.SAVE_BASE_PATH, exist_ok=True)
+
         with open(self.SAVE_BASE_PATH + filename + ".mmd", 'w') as f:
             f.write(
                 '---\n'
@@ -819,12 +824,15 @@ class Automaton:
 
 
     def complementary_automaton(self):
-        if not self.is complete():
-            self.completion()
-        if not self.is_deterministic():
-            self.determinization_and_completion()
+        automaton = copy.deepcopy(self)
+        if not automaton.is_complete()[0]:
+            automaton.completion()
+        if not automaton.is_deterministic()[0]:
+            automaton.determinize()
         new_final_states = []
-        for state in self.states:
-            if state not in self.finalStates:
+        for state in automaton.states:
+            if state not in automaton.finalStates:
                 new_final_states.append(state)
-        self.finalStates = new_final_states
+        automaton.finalStates = new_final_states
+
+        return automaton

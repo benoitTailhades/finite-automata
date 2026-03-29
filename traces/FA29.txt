@@ -1,0 +1,470 @@
+============================================================
+  AUTOMATON FA29
+============================================================
+
+[1] LOADING AND DISPLAY
+----------------------------------------
+              a   
+ <--    0     4   
+ -->    1    2,4  
+        2     3   
+ <--    3    2,0  
+        4    3,5  
+        5     0   
+
+[2] PROPERTIES
+----------------------------------------
+Standard     : YES — This automaton is standard.
+Deterministic: NO — This automata is not deterministic because the state 1 has 2 transitions on the same letter a:['2', '4']
+Complete     : YES
+
+[3] STANDARDIZATION
+----------------------------------------
+Already standard — no action taken.
+
+[4] DETERMINIZATION AND COMPLETION
+----------------------------------------
+Non-deterministic — applying determinization then completion.
+============================================================
+DETERMINIZATION - Subset Construction
+============================================================
+Alphabet    : ['a']
+NFA States  : ['0', '1', '2', '3', '4', '5']
+NFA Initial : ['1']
+NFA Final   : ['3', '0']
+
+--- Initialization ---
+  Starting subset (Initial) : ['1'] -> DFA State '1'
+
+--- Step 0: Processing DFA state '1' ---
+  Subset elements : ['1']
+  Role            : INITIAL
+    on 'a' -> ['2', '4'] -> leads to DFA state '24'
+
+--- Step 1: Processing DFA state '24' ---
+  Subset elements : ['2', '4']
+  Role            : REGULAR
+    on 'a' -> ['3', '5'] -> leads to DFA state '35'
+
+--- Step 2: Processing DFA state '35' ---
+  Subset elements : ['3', '5']
+  Role            : FINAL
+    on 'a' -> ['0', '2'] -> leads to DFA state '02'
+
+--- Step 3: Processing DFA state '02' ---
+  Subset elements : ['0', '2']
+  Role            : FINAL
+    on 'a' -> ['3', '4'] -> leads to DFA state '34'
+
+--- Step 4: Processing DFA state '34' ---
+  Subset elements : ['3', '4']
+  Role            : FINAL
+    on 'a' -> ['0', '2', '3', '5'] -> leads to DFA state '0235'
+
+--- Step 5: Processing DFA state '0235' ---
+  Subset elements : ['0', '2', '3', '5']
+  Role            : FINAL
+    on 'a' -> ['0', '2', '3', '4'] -> leads to DFA state '0234'
+
+--- Step 6: Processing DFA state '0234' ---
+  Subset elements : ['0', '2', '3', '4']
+  Role            : FINAL
+    on 'a' -> ['0', '2', '3', '4', '5'] -> leads to DFA state '02345'
+
+--- Step 7: Processing DFA state '02345' ---
+  Subset elements : ['0', '2', '3', '4', '5']
+  Role            : FINAL
+    on 'a' -> ['0', '2', '3', '4', '5'] -> leads to DFA state '02345'
+
+============================================================
+DETERMINIZATION RESULT
+============================================================
+  New States     : ['1', '24', '35', '02', '34', '0235', '0234', '02345']
+  Initial State  : ['1']
+  Final State(s) : ['35', '02', '34', '0235', '0234', '02345']
+  Transitions    :
+                 a   
+  -->     1     24   
+         24     35   
+  <--    35     02   
+  <--    02     34   
+  <--    34    0235  
+  <--   0235   0234  
+  <--   0234   02345 
+  <--   02345  02345 
+============================================================
+
+ ✔ Determinization complete.
+
+The automaton is already complete
+
+Resulting CDFA:
+                 a   
+  -->     1     24   
+         24     35   
+  <--    35     02   
+  <--    02     34   
+  <--    34    0235  
+  <--   0235   0234  
+  <--   0234   02345 
+  <--   02345  02345 
+
+[5] MINIMIZATION
+----------------------------------------
+============================================================
+MINIMISATION - Partition refinement
+============================================================
+Alphabet : ['a']
+States   : ['1', '24', '35', '02', '34', '0235', '0234', '02345']
+Final    : ['35', '02', '34', '0235', '0234', '02345']
+Initial  : ['1']
+
+--- Initialisation ---
+  P0 (final states)     : ['02', '0234', '02345', '0235', '34', '35']
+  P1 (non-final states) : ['1', '24']
+
+--- Iteration 0 ---
+  Current partition : [['02', '0234', '02345', '0235', '34', '35'], ['1', '24']]
+  Processing group ['02', '0234', '02345', '0235', '34', '35'] :
+    State 02 : signature = '0' [on 'a' -> 34 (group 0)] 
+    State 0234 : signature = '0' [on 'a' -> 02345 (group 0)] 
+    State 02345 : signature = '0' [on 'a' -> 02345 (group 0)] 
+    State 0235 : signature = '0' [on 'a' -> 0234 (group 0)] 
+    State 34 : signature = '0' [on 'a' -> 0235 (group 0)] 
+    State 35 : signature = '0' [on 'a' -> 02 (group 0)] 
+    => No split needed, group stays ['02', '0234', '02345', '0235', '34', '35']
+  Processing group ['1', '24'] :
+    State 1 : signature = '1' [on 'a' -> 24 (group 1)] 
+    State 24 : signature = '0' [on 'a' -> 35 (group 0)] 
+    => Split into 2 sub-groups :
+       signature '1' -> ['1']
+       signature '0' -> ['24']
+  New partition : [['02', '0234', '02345', '0235', '34', '35'], ['1'], ['24']]
+
+--- Iteration 1 ---
+  Current partition : [['02', '0234', '02345', '0235', '34', '35'], ['1'], ['24']]
+  Processing group ['02', '0234', '02345', '0235', '34', '35'] :
+    State 02 : signature = '0' [on 'a' -> 34 (group 0)] 
+    State 0234 : signature = '0' [on 'a' -> 02345 (group 0)] 
+    State 02345 : signature = '0' [on 'a' -> 02345 (group 0)] 
+    State 0235 : signature = '0' [on 'a' -> 0234 (group 0)] 
+    State 34 : signature = '0' [on 'a' -> 0235 (group 0)] 
+    State 35 : signature = '0' [on 'a' -> 02 (group 0)] 
+    => No split needed, group stays ['02', '0234', '02345', '0235', '34', '35']
+  Group ['1'] -> singleton, kept as-is
+  Group ['24'] -> singleton, kept as-is
+  New partition : [['02', '0234', '02345', '0235', '34', '35'], ['1'], ['24']]
+
+--- Stable partition reached after 2 iteration(s) ---
+  Final partition : [['02', '0234', '02345', '0235', '34', '35'], ['1'], ['24']]
+
+--- Building the minimal DFA ---
+  State mapping (original -> minimal state name) :
+    1 -> '1'
+    24 -> '24'
+    35 -> '02.34.35.0234.0235.02345'
+    02 -> '02.34.35.0234.0235.02345'
+    34 -> '02.34.35.0234.0235.02345'
+    0235 -> '02.34.35.0234.0235.02345'
+    0234 -> '02.34.35.0234.0235.02345'
+    02345 -> '02.34.35.0234.0235.02345'
+
+  Building state '02.34.35.0234.0235.02345' (from group ['02', '0234', '02345', '0235', '34', '35']) :
+    on 'a' -> '02.34.35.0234.0235.02345'
+    Role : FINAL
+
+  Building state '1' (from group ['1']) :
+    on 'a' -> '24'
+    Role : INITIAL
+
+  Building state '24' (from group ['24']) :
+    on 'a' -> '02.34.35.0234.0235.02345'
+    Role : regular
+
+============================================================
+MINIMISATION RESULT
+============================================================
+  States         : ['02.34.35.0234.0235.02345', '1', '24']
+  Initial state  : ['1']
+  Final state(s) : ['02.34.35.0234.0235.02345']
+  Transitions    :
+                                                                a             
+           <--             02.34.35.0234.0235.02345  02.34.35.0234.0235.02345 
+           -->                        1                         24            
+                                      24             02.34.35.0234.0235.02345 
+============================================================
+
+
+[6] WORD RECOGNITION
+----------------------------------------
+Words tested: ['', 'a', 'aa', 'ab', 'ba', 'aab', 'aba', 'bba', 'abab', 'aaab']
+(tested on the CDFA)
+
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+[RECOGNIZE] End of word. Active states: {'24'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+[RECOGNIZE] End of word. Active states: {'35'}
+[RECOGNIZE] Final states reached: ['35']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'b' from states {'1'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+  Step 3: reading symbol 'b' from states {'35'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'b' from states {'1'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['35', '02', '34', '0235', '0234', '02345']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+  Step 3: reading symbol 'a' from states {'35'}
+    35 --a--> ['02']
+  --> Current states after step 3: {'02'}
+
+  Step 4: reading symbol 'b' from states {'02'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+
+[7] COMPLEMENTARY AUTOMATON
+----------------------------------------
+Base automaton used: CDFA
+Complementary automaton (final states inverted):
+                 a   
+ <-->     1     24   
+  <--    24     35   
+         35     02   
+         02     34   
+         34    0235  
+        0235   0234  
+        0234   02345 
+        02345  02345 
+
+Words tested on the complementary automaton:
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: ['1']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+[RECOGNIZE] End of word. Active states: {'24'}
+[RECOGNIZE] Final states reached: ['24']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+[RECOGNIZE] End of word. Active states: {'35'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'b' from states {'1'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+  Step 3: reading symbol 'b' from states {'35'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'b' from states {'1'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'b' from states {'24'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['1']
+[RECOGNIZE] Final states:   ['1', '24']
+
+  Step 1: reading symbol 'a' from states {'1'}
+    1 --a--> ['24']
+  --> Current states after step 1: {'24'}
+
+  Step 2: reading symbol 'a' from states {'24'}
+    24 --a--> ['35']
+  --> Current states after step 2: {'35'}
+
+  Step 3: reading symbol 'a' from states {'35'}
+    35 --a--> ['02']
+  --> Current states after step 3: {'02'}
+
+  Step 4: reading symbol 'b' from states {'02'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+
+============================================================
+  END — FA29
+============================================================

@@ -1,0 +1,421 @@
+============================================================
+  AUTOMATON FA7
+============================================================
+
+[1] LOADING AND DISPLAY
+----------------------------------------
+              a   
+ <--    0    ---  
+ -->    1    0,1  
+
+[2] PROPERTIES
+----------------------------------------
+Standard     : NO — This automaton is not standard because there are transitions arriving at the initial state.
+Deterministic: NO — This automata is not deterministic because the state 1 has 2 transitions on the same letter a:['0', '1']
+Complete     : NO (see missing transitions below)
+
+There is 1 transition(s) missing on the state 0
+
+
+[3] STANDARDIZATION
+----------------------------------------
+============================================================
+STANDARDIZATION - Creating Single Initial State
+============================================================
+Original States          : ['0', '1']
+Original Initial States  : ['1']
+Original Final States    : ['0']
+Original Transitions     : {'1': {'a': ['0', '1']}, '0': {}}
+
+--- Step 1: Create new initial state ---
+  New initial state created: '2'
+
+--- Step 2: Check if new state is final ---
+  → New state '2' is NOT final
+
+--- Step 3: Merge transitions into new initial state ---
+  → We add the transition : 2 → a → 0, 1
+
+============================================================
+STANDARDIZATION RESULT
+============================================================
+
+New States          : ['0', '1', '2']
+New Initial States  : ['2']
+New Final States    : ['0']
+New Transitions     : {'1': {'a': ['0', '1']}, '0': {}, '2': {'a': ['0', '1']}}
+              a   
+ <--    0    ---  
+        1    0,1  
+ -->    2    0,1  
+============================================================
+
+ ✔ Standardization complete.
+
+Automaton after standardization:
+              a   
+ <--    0    ---  
+        1    0,1  
+ -->    2    0,1  
+
+[4] DETERMINIZATION AND COMPLETION
+----------------------------------------
+Non-deterministic — applying determinization then completion.
+============================================================
+DETERMINIZATION - Subset Construction
+============================================================
+Alphabet    : ['a']
+NFA States  : ['0', '1', '2']
+NFA Initial : ['2']
+NFA Final   : ['0']
+
+--- Initialization ---
+  Starting subset (Initial) : ['2'] -> DFA State '2'
+
+--- Step 0: Processing DFA state '2' ---
+  Subset elements : ['2']
+  Role            : INITIAL
+    on 'a' -> ['0', '1'] -> leads to DFA state '01'
+
+--- Step 1: Processing DFA state '01' ---
+  Subset elements : ['0', '1']
+  Role            : FINAL
+    on 'a' -> ['0', '1'] -> leads to DFA state '01'
+
+============================================================
+DETERMINIZATION RESULT
+============================================================
+  New States     : ['2', '01']
+  Initial State  : ['2']
+  Final State(s) : ['01']
+  Transitions    :
+              a   
+ -->    2     01  
+ <--    01    01  
+============================================================
+
+ ✔ Determinization complete.
+
+The automaton is already complete
+
+Resulting CDFA:
+              a   
+ -->    2     01  
+ <--    01    01  
+
+[5] MINIMIZATION
+----------------------------------------
+============================================================
+MINIMISATION - Partition refinement
+============================================================
+Alphabet : ['a']
+States   : ['2', '01']
+Final    : ['01']
+Initial  : ['2']
+
+--- Initialisation ---
+  P0 (final states)     : ['01']
+  P1 (non-final states) : ['2']
+
+--- Iteration 0 ---
+  Current partition : [['01'], ['2']]
+  Group ['01'] -> singleton, kept as-is
+  Group ['2'] -> singleton, kept as-is
+  New partition : [['01'], ['2']]
+
+--- Stable partition reached after 1 iteration(s) ---
+  Final partition : [['01'], ['2']]
+
+--- Building the minimal DFA ---
+  State mapping (original -> minimal state name) :
+    2 -> '2'
+    01 -> '01'
+
+  Building state '01' (from group ['01']) :
+    on 'a' -> '01'
+    Role : FINAL
+
+  Building state '2' (from group ['2']) :
+    on 'a' -> '01'
+    Role : INITIAL
+
+============================================================
+MINIMISATION RESULT
+============================================================
+  States         : ['01', '2']
+  Initial state  : ['2']
+  Final state(s) : ['01']
+  Transitions    :
+              a   
+ <--    01    01  
+ -->    2     01  
+============================================================
+
+
+[6] WORD RECOGNITION
+----------------------------------------
+Words tested: ['', 'a', 'aa', 'ab', 'ba', 'aab', 'aba', 'bba', 'abab', 'aaab']
+(tested on the CDFA)
+
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+[RECOGNIZE] End of word. Active states: {'01'}
+[RECOGNIZE] Final states reached: ['01']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+[RECOGNIZE] End of word. Active states: {'01'}
+[RECOGNIZE] Final states reached: ['01']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'b' from states {'2'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+  Step 3: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'b' from states {'2'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['01']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+  Step 3: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 3: {'01'}
+
+  Step 4: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+
+[7] COMPLEMENTARY AUTOMATON
+----------------------------------------
+Base automaton used: CDFA
+Complementary automaton (final states inverted):
+              a   
+ <-->   2     01  
+        01    01  
+
+Words tested on the complementary automaton:
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: ['2']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+[RECOGNIZE] End of word. Active states: {'01'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+[RECOGNIZE] End of word. Active states: {'01'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'b' from states {'2'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+  Step 3: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'b' from states {'2'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['2']
+[RECOGNIZE] Final states:   ['2']
+
+  Step 1: reading symbol 'a' from states {'2'}
+    2 --a--> ['01']
+  --> Current states after step 1: {'01'}
+
+  Step 2: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 2: {'01'}
+
+  Step 3: reading symbol 'a' from states {'01'}
+    01 --a--> ['01']
+  --> Current states after step 3: {'01'}
+
+  Step 4: reading symbol 'b' from states {'01'}
+  [ERROR] Symbol 'b' is not in alphabet ['a']
+[RECOGNIZE] Result: REJECTED (invalid symbol)
+
+
+============================================================
+  END — FA7
+============================================================

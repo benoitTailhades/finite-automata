@@ -1,0 +1,469 @@
+============================================================
+  AUTOMATON FA38
+============================================================
+
+[1] LOADING AND DISPLAY
+----------------------------------------
+              a     b   
+ <-->   0     1     3   
+ <--    1     1     2   
+ <--    2     3     3   
+ <--    3     3     3   
+
+[2] PROPERTIES
+----------------------------------------
+Standard     : YES — This automaton is standard.
+Deterministic: YES — This automata is deterministic.
+Complete     : YES
+
+[3] STANDARDIZATION
+----------------------------------------
+Already standard — no action taken.
+
+[4] DETERMINIZATION AND COMPLETION
+----------------------------------------
+Already a CDFA — no action taken.
+
+Resulting CDFA:
+              a     b   
+ <-->   0     1     3   
+ <--    1     1     2   
+ <--    2     3     3   
+ <--    3     3     3   
+
+[5] MINIMIZATION
+----------------------------------------
+============================================================
+MINIMISATION - Partition refinement
+============================================================
+Alphabet : ['a', 'b']
+States   : ['0', '1', '2', '3']
+Final    : ['0', '1', '2', '3']
+Initial  : ['0']
+
+--- Initialisation ---
+  P0 (final states)     : ['0', '1', '2', '3']
+  P1 (non-final states) : []
+
+--- Iteration 0 ---
+  Current partition : [['0', '1', '2', '3'], []]
+  Processing group ['0', '1', '2', '3'] :
+    State 0 : signature = '00' [on 'a' -> 1 (group 0)] [on 'b' -> 3 (group 0)] 
+    State 1 : signature = '00' [on 'a' -> 1 (group 0)] [on 'b' -> 2 (group 0)] 
+    State 2 : signature = '00' [on 'a' -> 3 (group 0)] [on 'b' -> 3 (group 0)] 
+    State 3 : signature = '00' [on 'a' -> 3 (group 0)] [on 'b' -> 3 (group 0)] 
+    => No split needed, group stays ['0', '1', '2', '3']
+  Processing group [] :
+    => Split into 0 sub-groups :
+  New partition : [['0', '1', '2', '3']]
+
+--- Iteration 1 ---
+  Current partition : [['0', '1', '2', '3']]
+  Processing group ['0', '1', '2', '3'] :
+    State 0 : signature = '00' [on 'a' -> 1 (group 0)] [on 'b' -> 3 (group 0)] 
+    State 1 : signature = '00' [on 'a' -> 1 (group 0)] [on 'b' -> 2 (group 0)] 
+    State 2 : signature = '00' [on 'a' -> 3 (group 0)] [on 'b' -> 3 (group 0)] 
+    State 3 : signature = '00' [on 'a' -> 3 (group 0)] [on 'b' -> 3 (group 0)] 
+    => No split needed, group stays ['0', '1', '2', '3']
+  New partition : [['0', '1', '2', '3']]
+
+--- Stable partition reached after 2 iteration(s) ---
+  Final partition : [['0', '1', '2', '3']]
+
+--- Building the minimal DFA ---
+  State mapping (original -> minimal state name) :
+    0 -> '0123'
+    1 -> '0123'
+    2 -> '0123'
+    3 -> '0123'
+
+  Building state '0123' (from group ['0', '1', '2', '3']) :
+    on 'a' -> '0123'
+    on 'b' -> '0123'
+    Role : INITIAL, FINAL
+
+============================================================
+MINIMISATION RESULT
+============================================================
+  States         : ['0123']
+  Initial state  : ['0123']
+  Final state(s) : ['0123']
+  Transitions    :
+              a     b   
+ <-->  0123  0123  0123 
+============================================================
+
+
+[6] WORD RECOGNITION
+----------------------------------------
+Words tested: ['', 'a', 'aa', 'ab', 'ba', 'aab', 'aba', 'bba', 'abab', 'aaab']
+(tested on the CDFA)
+
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+[RECOGNIZE] End of word. Active states: {'0'}
+[RECOGNIZE] Final states reached: ['0']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: ['1']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: ['1']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: ['2']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'b' from states {'0'}
+    0 --b--> ['3']
+  --> Current states after step 1: {'3'}
+
+  Step 2: reading symbol 'a' from states {'3'}
+    3 --a--> ['3']
+  --> Current states after step 2: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: ['3']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+  Step 3: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 3: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: ['2']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+  Step 3: reading symbol 'a' from states {'2'}
+    2 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: ['3']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'b' from states {'0'}
+    0 --b--> ['3']
+  --> Current states after step 1: {'3'}
+
+  Step 2: reading symbol 'b' from states {'3'}
+    3 --b--> ['3']
+  --> Current states after step 2: {'3'}
+
+  Step 3: reading symbol 'a' from states {'3'}
+    3 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: ['3']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+  Step 3: reading symbol 'a' from states {'2'}
+    2 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+  Step 4: reading symbol 'b' from states {'3'}
+    3 --b--> ['3']
+  --> Current states after step 4: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: ['3']
+[RECOGNIZE] Result: ACCEPTED
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   ['0', '1', '2', '3']
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+  Step 3: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 3: {'1'}
+
+  Step 4: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 4: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: ['2']
+[RECOGNIZE] Result: ACCEPTED
+
+
+[7] COMPLEMENTARY AUTOMATON
+----------------------------------------
+Base automaton used: CDFA
+Complementary automaton (final states inverted):
+              a     b   
+ -->    0     1     3   
+        1     1     2   
+        2     3     3   
+        3     3     3   
+
+Words tested on the complementary automaton:
+[RECOGNIZE] Starting recognition of ''
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+[RECOGNIZE] End of word. Active states: {'0'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'a'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aa'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+[RECOGNIZE] End of word. Active states: {'1'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'ab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'ba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'b' from states {'0'}
+    0 --b--> ['3']
+  --> Current states after step 1: {'3'}
+
+  Step 2: reading symbol 'a' from states {'3'}
+    3 --a--> ['3']
+  --> Current states after step 2: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+  Step 3: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 3: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+  Step 3: reading symbol 'a' from states {'2'}
+    2 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'bba'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'b' from states {'0'}
+    0 --b--> ['3']
+  --> Current states after step 1: {'3'}
+
+  Step 2: reading symbol 'b' from states {'3'}
+    3 --b--> ['3']
+  --> Current states after step 2: {'3'}
+
+  Step 3: reading symbol 'a' from states {'3'}
+    3 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'abab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 2: {'2'}
+
+  Step 3: reading symbol 'a' from states {'2'}
+    2 --a--> ['3']
+  --> Current states after step 3: {'3'}
+
+  Step 4: reading symbol 'b' from states {'3'}
+    3 --b--> ['3']
+  --> Current states after step 4: {'3'}
+
+[RECOGNIZE] End of word. Active states: {'3'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+[RECOGNIZE] Starting recognition of 'aaab'
+[RECOGNIZE] Initial states: ['0']
+[RECOGNIZE] Final states:   []
+
+  Step 1: reading symbol 'a' from states {'0'}
+    0 --a--> ['1']
+  --> Current states after step 1: {'1'}
+
+  Step 2: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 2: {'1'}
+
+  Step 3: reading symbol 'a' from states {'1'}
+    1 --a--> ['1']
+  --> Current states after step 3: {'1'}
+
+  Step 4: reading symbol 'b' from states {'1'}
+    1 --b--> ['2']
+  --> Current states after step 4: {'2'}
+
+[RECOGNIZE] End of word. Active states: {'2'}
+[RECOGNIZE] Final states reached: none
+[RECOGNIZE] Result: REJECTED (not in a final state)
+
+
+============================================================
+  END — FA38
+============================================================

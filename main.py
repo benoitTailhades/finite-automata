@@ -61,6 +61,8 @@ def main():
                 case '10':
                     action_check_word(automaton)
                 case '11':
+                    action_check_word_complementary_automaton(automaton)
+                case '12':
                     action_full_pipeline(automaton)
                 case _:
                     error(f"Unknown option '{choice}'. Please try again.")
