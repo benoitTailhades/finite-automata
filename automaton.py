@@ -816,7 +816,8 @@ class Automaton:
         print(f"[SYNC] New initial states:{self.initialStates}")
         print(f"[SYNC] New final states:  {self.finalStates}")
         print(f"[SYNC] New transitions:   {self.transitions}\n")
-        
+
+
     def complementary_automaton(self):
         if not self.is complete():
             self.completion()
