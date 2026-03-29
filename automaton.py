@@ -816,3 +816,14 @@ class Automaton:
         print(f"[SYNC] New initial states:{self.initialStates}")
         print(f"[SYNC] New final states:  {self.finalStates}")
         print(f"[SYNC] New transitions:   {self.transitions}\n")
+        
+    def complementary_automaton(self):
+        if not self.is complete():
+            self.completion()
+        if not self.is_deterministic():
+            self.determinization_and_completion()
+        new_final_states = []
+        for state in self.states:
+            if state not in self.finalStates:
+                new_final_states.append(state)
+        self.finalStates = new_final_states
