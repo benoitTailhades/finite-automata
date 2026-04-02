@@ -1,7 +1,7 @@
 import copy
 import os
 
-from ui_utils import error
+from ui_utils import *
 
 class Automaton:
     """
@@ -736,12 +736,6 @@ class Automaton:
             return False
 
     def synchronize(self):
-        print(f"[SYNC] Starting synchronization (epsilon removal)")
-        print(f"[SYNC] Epsilon symbol: 'E'")
-        print(f"[SYNC] Alphabet: {self.alphabet}")
-        print(f"[SYNC] Initial states: {self.initialStates}")
-        print(f"[SYNC] Final states:   {self.finalStates}\n")
-
         def epsilon_closure(states, transitions):
             closure = set(states)
             stack = list(states)
@@ -750,22 +744,26 @@ class Automaton:
                 if 'E' in transitions.get(state, {}):
                     for target in transitions[state]['E']:
                         if target not in closure:
-                            print(f"    [E-closure] {state} --E--> {target} (added to closure)")
                             closure.add(target)
                             stack.append(target)
             return closure
 
-        print(f"[SYNC] Computing epsilon-closure of initial states {self.initialStates}:")
-        initial_closure = epsilon_closure(self.initialStates, self.transitions)
-        print(f"[SYNC] Initial closure: {initial_closure}\n")
+        section("SYNCHRONIZATION — Epsilon Removal")
+        info(f"Alphabet       : {self.alphabet}")
+        info(f"Initial states : {self.initialStates}")
+        info(f"Final states   : {self.finalStates}")
+
+        initial_closure = frozenset(epsilon_closure(self.initialStates, self.transitions))
+        info(f"ε-closure of initial states {set(self.initialStates)} = {set(initial_closure)}")
+        info(f"  → Starting subset for the new automaton\n")
 
         visited = {}
-        queue = [frozenset(initial_closure)]
+        queue = [initial_closure]
         new_transitions = {}
         new_final_states = []
         new_initial_states = []
-
         counter = 0
+
         while queue:
             current_set = queue.pop(0)
 
@@ -777,50 +775,68 @@ class Automaton:
             counter += 1
             new_transitions[state_name] = {}
 
-            print(f"[SYNC] Processing new state '{state_name}' = {set(current_set)}")
-
-            if frozenset(initial_closure) == current_set:
+            roles = []
+            if current_set == initial_closure:
                 new_initial_states.append(state_name)
-                print(f"  --> '{state_name}' is an initial state")
-
+                roles.append("INITIAL")
             if any(s in self.finalStates for s in current_set):
                 new_final_states.append(state_name)
-                print(f"  --> '{state_name}' is a final state")
+                roles.append("FINAL")
+                finals_in = [s for s in current_set if s in self.finalStates]
+                info(f"  → Contains final state(s) {finals_in} → '{state_name}' is FINAL")
+
+            info(
+                f"┌─ Processing state '{state_name}' = {set(current_set)}  [{', '.join(roles) if roles else 'regular'}]")
 
             for symbol in self.alphabet:
                 reachable = set()
                 for state in current_set:
                     if symbol in self.transitions.get(state, {}):
                         targets = self.transitions[state][symbol]
-                        print(f"  {state} --{symbol}--> {targets}")
+                        info(f"│    {state} --{symbol}--> {targets}")
                         reachable.update(targets)
 
                 if not reachable:
-                    print(f"  --{symbol}--> (no transition)")
+                    info(f"│  on '{symbol}' → no transition")
                     continue
 
-                closed = epsilon_closure(reachable, self.transitions)
-                closed_frozen = frozenset(closed)
+                closed = frozenset(epsilon_closure(reachable, self.transitions))
+                added = set(closed) - reachable
 
-                target_name = visited[closed_frozen] if closed_frozen in visited else str(counter)
-                new_transitions[state_name][symbol] = [target_name]
-                print(f"  --{symbol}--> e-closure{set(reachable)} = {set(closed)} => new state '{target_name}'")
+                info(f"│  on '{symbol}' → reachable = {reachable}")
+                if added:
+                    info(f"│           ε-closure adds {added} → {set(closed)}")
+                else:
+                    info(f"│           ε-closure = {set(closed)}  (nothing added)")
 
-                if closed_frozen not in visited:
-                    queue.append(closed_frozen)
+                if closed not in visited:
+                    queue.append(closed)
+                    info(f"│           → new subset {set(closed)} queued")
+                else:
+                    info(f"│           → already known as state '{visited[closed]}'")
 
-            print()
+                new_transitions[state_name][symbol] = closed
+
+            info(f"└─ Done. Queue: {[set(s) for s in queue]}\n")
+
+        # Deuxième passe : remplacer les frozensets par les vrais noms d'états
+        for state_name in new_transitions:
+            for symbol in new_transitions[state_name]:
+                frozen = new_transitions[state_name][symbol]
+                new_transitions[state_name][symbol] = [visited[frozen]]
 
         self.states = list(new_transitions.keys())
         self.initialStates = new_initial_states
         self.finalStates = new_final_states
         self.transitions = new_transitions
 
-        print(f"[SYNC] Done.")
-        print(f"[SYNC] New states:        {self.states}")
-        print(f"[SYNC] New initial states:{self.initialStates}")
-        print(f"[SYNC] New final states:  {self.finalStates}")
-        print(f"[SYNC] New transitions:   {self.transitions}\n")
+        section("SYNCHRONIZATION RESULT")
+        info(f"New states        : {self.states}")
+        info(f"New initial states: {self.initialStates}")
+        info(f"New final states  : {self.finalStates}")
+        info(f"New transitions   :")
+        self.display_automaton()
+        success("Synchronization complete.\n")
 
 
     def complementary_automaton(self):
